@@ -1,0 +1,92 @@
+{
+  "python": "3.12.14",
+  "torch": "2.8.0+cpu",
+  "cuda_available": false,
+  "unittest_returncode": 0,
+  "gpu_full_executed": false,
+  "notebook_schema_and_syntax": "passed",
+  "notebook_code_cells": 11,
+  "preserved_files": [
+    {
+      "file": "baseline.py",
+      "sha256": "002bf07bf1a47195f564c8eb87d12a106940df6bb394b497a353d8052968d004",
+      "unchanged": true
+    },
+    {
+      "file": "rewards.py",
+      "sha256": "3830cfeb746038ccbde4713a0f403a9a48fabc48ee0f07c5e8e239c167d0e236",
+      "unchanged": true
+    },
+    {
+      "file": "guidance_cov.py",
+      "sha256": "abe98fcf7cc0af4ae03736116acff8075b169a55eb9307b26eea950e86eb4f24",
+      "unchanged": true
+    },
+    {
+      "file": "validate_baseline.py",
+      "sha256": "d7239bebfb7f98615f14868e69f5c9129238a5cafade20e8ed6c0054ddd1fdda",
+      "unchanged": true
+    },
+    {
+      "file": "test_baseline.py",
+      "sha256": "60ab88d2542ebc87429690e8254d75326f4ca71eada1760815be3f1fae1a9b24",
+      "unchanged": true
+    },
+    {
+      "file": "test_rewards.py",
+      "sha256": "48214cff55a1e6747cc7bd2b77361f0124a299ef19ed53ae196b7ec002eb9730",
+      "unchanged": true
+    },
+    {
+      "file": "test_cov.py",
+      "sha256": "a89da3f06d2288dc4587df16db89f17aa8ada5e53a48d841cebfe14542131b45",
+      "unchanged": true
+    },
+    {
+      "file": "requirements.txt",
+      "sha256": "5adbddc442d11ff28f1befa2a7c9086c8d6dafd8ef853a38c2e470dd2b2ef686",
+      "unchanged": true
+    },
+    {
+      "file": "requirements-rewards.txt",
+      "sha256": "43357ce1921018176e4054384c0e4774fe605a35da10c145ada98b469d8ad13b",
+      "unchanged": true
+    },
+    {
+      "file": "01_colab_t4.ipynb",
+      "sha256": "480a986ea5d98d715a2ae877b370d67b87a4f98f3f38123278526ee1a5893b58",
+      "unchanged": true
+    },
+    {
+      "file": "02_rewards_t4.ipynb",
+      "sha256": "c185901f1d716222cdc87650184a7993b3fbe8f17091dfa23cce2f2ff68a79ef",
+      "unchanged": true
+    },
+    {
+      "file": "02_rewards_t4(1).ipynb",
+      "sha256": "b4597a414b0ddf2abd760ff626fc5262e772515de3bfc8ab7d6e064683a2d72f",
+      "unchanged": true
+    },
+    {
+      "file": "03_cov_t4.ipynb",
+      "sha256": "ccd5eeea3c902a8acba47d21beb877c56aaad73b7dae3cfb3b91285a1fcb2e39",
+      "unchanged": true
+    },
+    {
+      "file": "diffusion-reward-guidance-cov.zip",
+      "sha256": "15313d64226fcf7a893de23a5257db6c7a2065cf1704b012e38e45c8a19cb5bb",
+      "unchanged": true
+    },
+    {
+      "file": "cov_20261011_133203_851353_UTC.zip",
+      "sha256": "a39189633ca9e8c6450e3d7166559085acbea3a43cedd781c3a59ae1dcae2cca",
+      "unchanged": true
+    }
+  ],
+  "code_sha256": {
+    "guidance_full.py": "cae92205dc3324d19c5516c670bc39b2486c14b55234c0435ccb393ab1796d98",
+    "test_full.py": "5ad109f7360d634acd008966499aba19f5fba8435edac623490be572d11ce56b",
+    "notebooks/04_full_t4.ipynb": "e865587d8281f642fda5a1609e8b77eddbbf522a44b736ae921cda9bcc15a3e0"
+  },
+  "notebook_business_cells_cpu_check": "validation/full_notebook_cpu_check.json"
+}

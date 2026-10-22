@@ -1,0 +1,33 @@
+test_all_50_steps_match_diffusers_float32_and_float16 (test_baseline.DDIMStepTests.test_all_50_steps_match_diffusers_float32_and_float16)
+Même arithmétique et mêmes coefficients que le pas officiel. ... ok
+test_initial_noise_shape_finiteness_and_seed (test_baseline.DDIMStepTests.test_initial_noise_shape_finiteness_and_seed) ... ok
+test_last_step_and_clipping_follow_configuration (test_baseline.DDIMStepTests.test_last_step_and_clipping_follow_configuration) ... ok
+test_unsupported_prediction_and_thresholding_are_rejected (test_baseline.DDIMStepTests.test_unsupported_prediction_and_thresholding_are_rejected) ... ok
+test_sampler_and_decode_match_real_diffusers_pipeline (test_baseline.TinyPipelineTests.test_sampler_and_decode_match_real_diffusers_pipeline)
+Vrais composants aléatoires, 3 pas CPU, aucune donnée préentraînée. ... ok
+test_directional_derivatives_in_float32 (test_rewards.AnalyticRewardTests.test_directional_derivatives_in_float32) ... ok
+test_disk_and_mask_normalization (test_rewards.AnalyticRewardTests.test_disk_and_mask_normalization) ... ok
+test_gradients_match_closed_form_in_float32 (test_rewards.AnalyticRewardTests.test_gradients_match_closed_form_in_float32) ... ok
+test_reductions_promote_half_and_preserve_double (test_rewards.AnalyticRewardTests.test_reductions_promote_half_and_preserve_double) ... ok
+test_shapes_and_nonfinite_inputs_are_rejected (test_rewards.AnalyticRewardTests.test_shapes_and_nonfinite_inputs_are_rejected) ... ok
+test_values_coefficients_and_maxima (test_rewards.AnalyticRewardTests.test_values_coefficients_and_maxima) ... ok
+test_directional_successes_must_be_consecutive_and_include_ascent (test_rewards.DifferentiablePathTests.test_directional_successes_must_be_consecutive_and_include_ascent) ... ok
+test_frozen_vae_forward_and_latent_gradients (test_rewards.DifferentiablePathTests.test_frozen_vae_forward_and_latent_gradients) ... ok
+test_imagereward_preprocessing_geometry_and_gradient (test_rewards.DifferentiablePathTests.test_imagereward_preprocessing_geometry_and_gradient) ... ok
+test_latent_gradient_diagnostic_reports_ascent_without_parameter_grads (test_rewards.DifferentiablePathTests.test_latent_gradient_diagnostic_reports_ascent_without_parameter_grads) ... ok
+test_latent_gradient_rejects_invalid_step_grids (test_rewards.DifferentiablePathTests.test_latent_gradient_rejects_invalid_step_grids) ... ok
+test_vae_checkpointing_preserves_forward_and_latent_gradient (test_rewards.DifferentiablePathTests.test_vae_checkpointing_preserves_forward_and_latent_gradient) ... ok
+test_gaussian_linear_reward_matches_exact_log_mgf_gradient (test_cov.COVEquationTests.test_gaussian_linear_reward_matches_exact_log_mgf_gradient)
+La log-MGF du posterior fournit une référence analytique indépendante. ... ok
+test_invalid_hyperparameters_are_rejected (test_cov.COVEquationTests.test_invalid_hyperparameters_are_rejected) ... ok
+test_noise_sign_gradient_and_ddim_displacement (test_cov.COVEquationTests.test_noise_sign_gradient_and_ddim_displacement) ... ok
+test_nonfinite_inputs_rewards_gradients_and_cast_are_rejected (test_cov.COVEquationTests.test_nonfinite_inputs_rewards_gradients_and_cast_are_rejected) ... ok
+test_raw_mu_and_scheduler_clipping_remain_distinct (test_cov.COVEquationTests.test_raw_mu_and_scheduler_clipping_remain_distinct) ... ok
+test_beta_zero_and_constant_rewards_match_every_baseline_state (test_cov.COVSamplerTests.test_beta_zero_and_constant_rewards_match_every_baseline_state) ... ok
+test_failure_keeps_explicit_diagnostic_and_rejects_unfrozen_models (test_cov.COVSamplerTests.test_failure_keeps_explicit_diagnostic_and_rejects_unfrozen_models) ... ok
+test_real_network_gradients_graph_release_and_reproducibility (test_cov.COVSamplerTests.test_real_network_gradients_graph_release_and_reproducibility) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 5.651s
+
+OK

@@ -1,0 +1,25 @@
+{
+  "scope": "notebook business cells with tiny random CPU networks; GPU memory fields stubbed to zero",
+  "cells_executed": [
+    8,
+    10,
+    12,
+    14,
+    16,
+    18
+  ],
+  "steps": 4,
+  "generations": 7,
+  "comparison_panels": 2,
+  "json_csv_tensors_png": "passed",
+  "gpu_executed": false,
+  "beta0_cov_full_and_full_constant_exact": true,
+  "unet_backward_hook_seen": true,
+  "same_beta_and_matched_correction_cases": true,
+  "duplicate_generation_reused": true,
+  "manual_retry_invalidates_old_pass": true,
+  "repeated_probe_cannot_overwrite_gradient": true,
+  "calibration_checks_prerequisites": true,
+  "simulated_oom_retry_preserves_failure": true,
+  "simulated_persistent_oom_stops_for_H100": true
+}

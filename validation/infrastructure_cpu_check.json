@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-11",
+  "python": "3.12.14",
+  "torch": "2.8.0+cpu",
+  "test_count": 75,
+  "tests_passed": true,
+  "test_seconds": 20.928,
+  "test_command": "python -m unittest -v test_baseline test_rewards test_cov test_full test_lidar test_experiment test_evaluate test_analysis",
+  "scope": "CPU equations/fixtures and mock orchestration; no new SD1.5 or metric-network execution",
+  "preserved_core_and_tests": {
+    "baseline.py": true,
+    "guidance_cov.py": true,
+    "guidance_full.py": true,
+    "guidance_lidar.py": true,
+    "rewards.py": true,
+    "test_baseline.py": true,
+    "test_cov.py": true,
+    "test_full.py": true,
+    "test_lidar.py": true,
+    "test_rewards.py": true
+  },
+  "preserved_notebooks_vs_previous_archive": {
+    "01_colab_t4.ipynb": true,
+    "02_rewards_t4.ipynb": true,
+    "03_cov_t4.ipynb": true,
+    "04_full_t4.ipynb": true,
+    "05_lidar_t4.ipynb": true
+  },
+  "dry_run_grids": {
+    "t4_smoke": {
+      "tasks": 4,
+      "unique_paths": 4,
+      "generated": 0
+    },
+    "calibration_dev": {
+      "tasks": 21,
+      "unique_paths": 21,
+      "generated": 0
+    },
+    "full_count_only_not_selected": {
+      "tasks": 2600,
+      "baseline_images": 200,
+      "bank_candidates": 800,
+      "generated": 0
+    }
+  },
+  "unfilled_final_template_rejection": "Fixer explicitement une grille de beta finis, positifs ou nuls, distincts.",
+  "files": {
+    "run_experiment.py": "0e6fa63dd348e0801f13cc96ee3cc752cb818e2c85b3ead58b9acee77f372f6c",
+    "evaluate.py": "14da7af06b0d97a821fbed3c10159d134cd810c54cb8611b0eab59a0dc7ef314",
+    "analyze_results.py": "87f9e37feaed83da97ecbc821f9424243446e58508243a36f1dafe3bf7d3d32d",
+    "calibrate_beta.py": "4094a2024fc73c32dd7fc1d9ceef7cc0498d0c8927e308104c3c5ef77f68031f",
+    "test_experiment.py": "2cf3520d80b2c2dd5d3980a5bb35e7e78dbcbf5475a6ff6ebd8127ed58206793",
+    "test_evaluate.py": "33037ad296bb432c0fa51eb6b052b1cf6e476471540535f51deec44fe7190005",
+    "test_analysis.py": "22655c1b0813ac8f8012fb6170a91a89027d9df9fd92e559c18ed2ca52f5f205"
+  },
+  "not_validated": [
+    "Docker build",
+    "GPU SD1.5 orchestration",
+    "real CLIP/HPS checkpoints and scores",
+    "H100 environment",
+    "Northflank persistence and costs"
+  ]
+}

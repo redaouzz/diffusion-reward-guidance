@@ -1,0 +1,34 @@
+# Environnement autonome pour les PNG : récompenses analytiques, CLIP et HPSv2.
+# Aucun héritage de requirements-rewards/experiment, ni installation ImageReward.
+# PyTorch/torchvision sont déjà présents dans la base Docker ; leurs pins restent
+# ceux du projet et /opt/pytorch-constraints.txt protège toute la pile CUDA.
+torch==2.8.0
+torchvision==0.23.0
+numpy==2.1.3
+Pillow==11.3.0
+# DDIMScheduler est importé par le contrôle d'intégrité de run_experiment.
+diffusers==0.35.1
+transformers==4.51.3
+tokenizers==0.21.4
+huggingface-hub==0.34.4
+safetensors==0.6.2
+timm==0.9.16
+ftfy==6.3.1
+# Conserver aussi les dépendances déclarées par HPSv2 (y compris celles de
+# training/tests) pour que pip check reste strict, sans modifier sa distribution.
+einops==0.8.1
+regex==2025.9.18
+pandas==2.3.2
+braceexpand==0.1.7
+fsspec==2025.3.0
+tqdm==4.67.1
+sentencepiece==0.2.1
+protobuf==3.20.3
+webdataset==0.2.111
+pyarrow==20.0.0
+pytest==7.2.0
+pytest-split==0.8.0
+requests==2.32.5
+clint==0.5.1
+args==0.1.0
+packaging==25.0

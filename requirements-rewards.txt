@@ -1,0 +1,11 @@
+# Complément de l'étape 3 ; le fichier de la baseline reste inchangé.
+-r requirements.txt
+torchvision==0.23.0
+timm==0.9.16
+fairscale==0.4.13
+datasets==3.6.0
+ftfy==6.3.1
+# Les deux dépôts officiels sont installés séparément aux commits documentés.
+# Ils utilisent encore pkg_resources pendant leur build.
+setuptools==80.9.0
+wheel==0.45.1

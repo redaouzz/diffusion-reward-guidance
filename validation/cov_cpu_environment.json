@@ -1,0 +1,72 @@
+{
+  "python": "3.12.14",
+  "torch": "2.8.0+cpu",
+  "cuda_available": false,
+  "unittest_returncode": 0,
+  "gpu_cov_executed": false,
+  "notebook_schema_and_syntax": "passed",
+  "notebook_code_cells": 11,
+  "preserved_files": [
+    {
+      "file": "baseline.py",
+      "sha256": "002bf07bf1a47195f564c8eb87d12a106940df6bb394b497a353d8052968d004",
+      "unchanged": true
+    },
+    {
+      "file": "rewards.py",
+      "sha256": "3830cfeb746038ccbde4713a0f403a9a48fabc48ee0f07c5e8e239c167d0e236",
+      "unchanged": true
+    },
+    {
+      "file": "validate_baseline.py",
+      "sha256": "d7239bebfb7f98615f14868e69f5c9129238a5cafade20e8ed6c0054ddd1fdda",
+      "unchanged": true
+    },
+    {
+      "file": "test_baseline.py",
+      "sha256": "60ab88d2542ebc87429690e8254d75326f4ca71eada1760815be3f1fae1a9b24",
+      "unchanged": true
+    },
+    {
+      "file": "test_rewards.py",
+      "sha256": "48214cff55a1e6747cc7bd2b77361f0124a299ef19ed53ae196b7ec002eb9730",
+      "unchanged": true
+    },
+    {
+      "file": "requirements.txt",
+      "sha256": "5adbddc442d11ff28f1befa2a7c9086c8d6dafd8ef853a38c2e470dd2b2ef686",
+      "unchanged": true
+    },
+    {
+      "file": "01_colab_t4.ipynb",
+      "sha256": "480a986ea5d98d715a2ae877b370d67b87a4f98f3f38123278526ee1a5893b58",
+      "unchanged": true
+    },
+    {
+      "file": "02_rewards_t4.ipynb",
+      "sha256": "c185901f1d716222cdc87650184a7993b3fbe8f17091dfa23cce2f2ff68a79ef",
+      "unchanged": true
+    },
+    {
+      "file": "02_rewards_t4(1).ipynb",
+      "sha256": "b4597a414b0ddf2abd760ff626fc5262e772515de3bfc8ab7d6e064683a2d72f",
+      "unchanged": true
+    },
+    {
+      "file": "diffusion-reward-guidance-rewards.zip",
+      "sha256": "aeb7b342c1319a5f317efd411bfae748315fa18b9160a3cd4c97b1d628c9bfbb",
+      "unchanged": true
+    },
+    {
+      "file": "rewards_20261011_104915_999368_UTC.zip",
+      "sha256": "233e9745d77501cf7db44411f4d4b208d968e381e3a263fa039d0a0661f4093a",
+      "unchanged": true
+    }
+  ],
+  "code_sha256": {
+    "guidance_cov.py": "abe98fcf7cc0af4ae03736116acff8075b169a55eb9307b26eea950e86eb4f24",
+    "test_cov.py": "a89da3f06d2288dc4587df16db89f17aa8ada5e53a48d841cebfe14542131b45",
+    "notebooks/03_cov_t4.ipynb": "ccd5eeea3c902a8acba47d21beb877c56aaad73b7dae3cfb3b91285a1fcb2e39"
+  },
+  "notebook_business_cells_cpu_check": "validation/cov_notebook_cpu_check.json"
+}

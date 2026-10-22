@@ -1,0 +1,33 @@
+{
+  "source_count": 553,
+  "dev_count": 50,
+  "heldout_count": 50,
+  "dev_heldout_overlap": [],
+  "pilot": [
+    {
+      "prompt": "a photo of a sandwich",
+      "generation_line": 32,
+      "dev_line": 1
+    },
+    {
+      "prompt": "a photo of a frisbee and a cell phone",
+      "generation_line": 120,
+      "dev_line": 2
+    },
+    {
+      "prompt": "a photo of two bananas",
+      "generation_line": 239,
+      "dev_line": 3
+    },
+    {
+      "prompt": "a photo of a green clock",
+      "generation_line": 321,
+      "dev_line": 4
+    },
+    {
+      "prompt": "a photo of a zebra right of a bed",
+      "generation_line": 443,
+      "dev_line": 5
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "cuda_available": false,
+  "versions": {
+    "torch": "2.8.0+cpu",
+    "torchvision": "0.23.0+cpu",
+    "diffusers": "0.35.1",
+    "transformers": "4.51.3",
+    "tokenizers": "0.21.4",
+    "accelerate": "1.10.1",
+    "huggingface-hub": "0.34.4",
+    "numpy": "2.1.3",
+    "Pillow": "11.3.0",
+    "timm": "0.9.16",
+    "fairscale": "0.4.13",
+    "datasets": "3.6.0",
+    "image-reward": "1.5",
+    "clip": "1.0"
+  },
+  "direct_urls": {
+    "clip": {
+      "archive_info": {
+        "hash": "sha256=c665a33987c7365078c9988fdae5699026ec75cc4424bc0d59ab2599df22229a",
+        "hashes": {
+          "sha256": "c665a33987c7365078c9988fdae5699026ec75cc4424bc0d59ab2599df22229a"
+        }
+      },
+      "url": "https://github.com/openai/CLIP/archive/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6.zip"
+    },
+    "image-reward": {
+      "archive_info": {
+        "hash": "sha256=f25b4e87b833e5cc34bee930b079ae3ad5892b80531e223ca5367c13060ebcfd",
+        "hashes": {
+          "sha256": "f25b4e87b833e5cc34bee930b079ae3ad5892b80531e223ca5367c13060ebcfd"
+        }
+      },
+      "url": "https://github.com/zai-org/ImageReward/archive/78f8051059b34fef8e0032ccb40561c23a2ddbbb.zip"
+    }
+  },
+  "unittest_exit_code": 0,
+  "unittest_count": 17,
+  "pip_check": "No broken requirements found.",
+  "official_small_architecture_score_gard_backward": "PASS",
+  "official_small_architecture_gradient_norm": 5.413720373326214e-06,
+  "real_pretrained_weights_tested": false,
+  "gpu_tested": false,
+  "preserved_against_baseline_zip": {
+    "baseline.py": true,
+    "validate_baseline.py": true,
+    "test_baseline.py": true,
+    "requirements.txt": true,
+    "notebooks/01_colab_t4.ipynb": true
+  },
+  "source_sha256": {
+    "rewards.py": "3830cfeb746038ccbde4713a0f403a9a48fabc48ee0f07c5e8e239c167d0e236",
+    "test_rewards.py": "48214cff55a1e6747cc7bd2b77361f0124a299ef19ed53ae196b7ec002eb9730",
+    "requirements-rewards.txt": "43357ce1921018176e4054384c0e4774fe605a35da10c145ada98b469d8ad13b"
+  },
+  "limits": "CPU uniquement ; ViT/BERT/MLP officiels avec petits r\u00e9seaux al\u00e9atoires, aucun checkpoint pr\u00e9entra\u00een\u00e9. Ce contr\u00f4le ne valide ni le chargeur complet ImageReward ni les valeurs de sa r\u00e9compense r\u00e9elle."
+}

@@ -1,0 +1,218 @@
+{
+  "source_csv_sha256": "7856eefda5324b416c084f1d7db2bbaed0058e5f27415d4a7e8801690ea1d81e",
+  "discussion_source_sha256": "f50d37232d2fcb28de6057d404d7e73c0f3367e58facbc2960cf875e0155530a",
+  "full_pair_counts": {
+    "clip_decreases": 21,
+    "hps_increases": 17,
+    "hps_decreases": 15
+  },
+  "worst_clip_pair": {
+    "prompt_index": 4,
+    "seed": 0,
+    "clip_delta": -0.17851561307907104,
+    "hps_delta": -0.05322265625
+  },
+  "full_paired_deltas": [
+    {
+      "prompt_index": 0,
+      "seed": 0,
+      "clip_delta": -0.005753159523010254,
+      "hps_delta": 0.0009765625
+    },
+    {
+      "prompt_index": 0,
+      "seed": 1,
+      "clip_delta": -0.002947092056274414,
+      "hps_delta": 0.00537109375
+    },
+    {
+      "prompt_index": 0,
+      "seed": 2,
+      "clip_delta": 0.011810123920440674,
+      "hps_delta": -0.007568359375
+    },
+    {
+      "prompt_index": 0,
+      "seed": 3,
+      "clip_delta": 0.0157739520072937,
+      "hps_delta": 0.000244140625
+    },
+    {
+      "prompt_index": 1,
+      "seed": 0,
+      "clip_delta": 0.05139350891113281,
+      "hps_delta": 0.00146484375
+    },
+    {
+      "prompt_index": 1,
+      "seed": 1,
+      "clip_delta": 0.02016681432723999,
+      "hps_delta": 0.010986328125
+    },
+    {
+      "prompt_index": 1,
+      "seed": 2,
+      "clip_delta": 0.09305644035339355,
+      "hps_delta": 0.01416015625
+    },
+    {
+      "prompt_index": 1,
+      "seed": 3,
+      "clip_delta": 0.041915178298950195,
+      "hps_delta": 0.003662109375
+    },
+    {
+      "prompt_index": 2,
+      "seed": 0,
+      "clip_delta": -0.02662825584411621,
+      "hps_delta": -0.009765625
+    },
+    {
+      "prompt_index": 2,
+      "seed": 1,
+      "clip_delta": 0.038222670555114746,
+      "hps_delta": 0.007080078125
+    },
+    {
+      "prompt_index": 2,
+      "seed": 2,
+      "clip_delta": 0.009402751922607422,
+      "hps_delta": -0.0009765625
+    },
+    {
+      "prompt_index": 2,
+      "seed": 3,
+      "clip_delta": -0.009821057319641113,
+      "hps_delta": -0.00146484375
+    },
+    {
+      "prompt_index": 3,
+      "seed": 0,
+      "clip_delta": -0.00665515661239624,
+      "hps_delta": -0.004150390625
+    },
+    {
+      "prompt_index": 3,
+      "seed": 1,
+      "clip_delta": -0.010582506656646729,
+      "hps_delta": -0.025634765625
+    },
+    {
+      "prompt_index": 3,
+      "seed": 2,
+      "clip_delta": -0.02147364616394043,
+      "hps_delta": -0.0048828125
+    },
+    {
+      "prompt_index": 3,
+      "seed": 3,
+      "clip_delta": -0.028439223766326904,
+      "hps_delta": -0.001220703125
+    },
+    {
+      "prompt_index": 4,
+      "seed": 0,
+      "clip_delta": -0.17851561307907104,
+      "hps_delta": -0.05322265625
+    },
+    {
+      "prompt_index": 4,
+      "seed": 1,
+      "clip_delta": -0.005821406841278076,
+      "hps_delta": 0.01416015625
+    },
+    {
+      "prompt_index": 4,
+      "seed": 2,
+      "clip_delta": -0.0024543404579162598,
+      "hps_delta": -0.013671875
+    },
+    {
+      "prompt_index": 4,
+      "seed": 3,
+      "clip_delta": 0.015333950519561768,
+      "hps_delta": 0.001953125
+    },
+    {
+      "prompt_index": 5,
+      "seed": 0,
+      "clip_delta": -0.020067989826202393,
+      "hps_delta": 0.00390625
+    },
+    {
+      "prompt_index": 5,
+      "seed": 1,
+      "clip_delta": -0.09574532508850098,
+      "hps_delta": 0.003662109375
+    },
+    {
+      "prompt_index": 5,
+      "seed": 2,
+      "clip_delta": 0.024680674076080322,
+      "hps_delta": -0.006591796875
+    },
+    {
+      "prompt_index": 5,
+      "seed": 3,
+      "clip_delta": -0.039928972721099854,
+      "hps_delta": 0.001953125
+    },
+    {
+      "prompt_index": 6,
+      "seed": 0,
+      "clip_delta": -0.006454169750213623,
+      "hps_delta": 0.0009765625
+    },
+    {
+      "prompt_index": 6,
+      "seed": 1,
+      "clip_delta": -0.01848435401916504,
+      "hps_delta": 0.001220703125
+    },
+    {
+      "prompt_index": 6,
+      "seed": 2,
+      "clip_delta": -0.002665281295776367,
+      "hps_delta": -0.0009765625
+    },
+    {
+      "prompt_index": 6,
+      "seed": 3,
+      "clip_delta": 0.0037204623222351074,
+      "hps_delta": 0.001708984375
+    },
+    {
+      "prompt_index": 7,
+      "seed": 0,
+      "clip_delta": -0.05580562353134155,
+      "hps_delta": -0.002197265625
+    },
+    {
+      "prompt_index": 7,
+      "seed": 1,
+      "clip_delta": -0.006328582763671875,
+      "hps_delta": 0.000244140625
+    },
+    {
+      "prompt_index": 7,
+      "seed": 2,
+      "clip_delta": -0.01288372278213501,
+      "hps_delta": -0.000732421875
+    },
+    {
+      "prompt_index": 7,
+      "seed": 3,
+      "clip_delta": -0.05779761075973511,
+      "hps_delta": -0.010498046875
+    }
+  ],
+  "historical_t4_checks": {
+    "zero_noise_corrections_8x20": 41,
+    "total_steps": 50,
+    "cov_amplitude_pilot_report_section": "5.3",
+    "imagereward_diagnostic_report_section": "3.3"
+  },
+  "scope": "CPU CSV arithmetic and existing T4 report evidence; no GPU, no new image inspection, no causal test.",
+  "v3_body_unchanged_after_removing_added_subsection_and_version_bump": true,
+  "layout_change": "TOC paragraph spacing reduced locally from 3pt to 2pt to keep it on one page."
+}

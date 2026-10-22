@@ -1,0 +1,28 @@
+{
+  "scope": "business cells with tiny random CPU U-Net/VAE; memory display fields stubbed to zero",
+  "gpu_executed": false,
+  "steps": 4,
+  "bank_size": 8,
+  "lookahead_steps": 2,
+  "cells_executed": [
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20
+  ],
+  "generations": 7,
+  "bank_rewards_evaluated_once": true,
+  "bank_reuse_without_generation_or_scoring": true,
+  "incompatible_bank_rejected": true,
+  "three_identities_exact": true,
+  "json_csv_png_traces": true,
+  "historical_panel_with_synthetic_fixture": true,
+  "scheduler_private_metadata_ignored": true,
+  "ess_and_correction_summary_rows": 9,
+  "cost_accounting_checked": true,
+  "simulated_bank_oom_saved_and_propagated": true,
+  "gpu_memory_measured": false
+}

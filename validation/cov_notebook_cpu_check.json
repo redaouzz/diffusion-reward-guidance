@@ -1,0 +1,17 @@
+{
+  "scope": "notebook business cells with tiny random CPU networks; GPU memory fields stubbed to zero",
+  "cells_executed": [
+    8,
+    10,
+    12,
+    14,
+    16,
+    18
+  ],
+  "steps": 4,
+  "generations": 6,
+  "comparisons_saved": 3,
+  "json_csv_tensors_png": "passed",
+  "gpu_executed": false,
+  "baseline_zero_constant_exact": true
+}

@@ -1,0 +1,437 @@
+{
+  "archive_sha256": "f73dec0103b9221f73debece75176793e39a9b3ea7f052852e42a01badaa3d0f",
+  "checks": {
+    "zip_crc": true,
+    "reference_archive_sha256": true,
+    "reference_all_copied_files_byte_identical": true,
+    "source_hashes_match_delivered_helper_and_core": true,
+    "two_requested_fixed_beta_scenarios_only": true,
+    "original_configuration_preserved_except_bank_controls": true,
+    "initial_noise_seed0_exact": true,
+    "original_first_eight_16x5_latents_rewards_pngs_metadata_exact": true,
+    "independent_bank_seeds_and_correct_timesteps_logged": true,
+    "bank_sha256s_valid": true,
+    "bank_rewards_equal_metadata": true,
+    "bank_png_luminance_within_quantization_bound": true,
+    "both_saved_final_latents_and_50_states_finite": true,
+    "final_image_rewards_and_pngs_consistent": true,
+    "all_step_json_csv_consistent": true,
+    "summary_diagnostics_recomputed": true,
+    "cost_accounting_recomputed": true,
+    "both_statuses_passed_and_no_failure_files": true,
+    "summary_matches_both_result_files": true,
+    "no_grad_detached_flags_logged": true
+  },
+  "experiments": [
+    {
+      "result": {
+        "label": "bank16_steps5",
+        "beta": 66.37033847314085,
+        "bank_size": 16,
+        "lookahead_steps": 5,
+        "reward": -0.07051265239715576,
+        "mean_luminance": 0.43445780873298645,
+        "absolute_error": 0.2655421912670135,
+        "delta_reward_vs_base": 0.0012013837695121765,
+        "delta_reward_vs_reference_8x5": 0.0013023242354393005,
+        "ess_reward_below_1_01_steps": 26,
+        "mean_ess": 1.2708604769234666,
+        "mean_ess_reward": 1.1976283391354032,
+        "unchanged_noise_steps": 18,
+        "max_relative_noise_correction": 0.11989404532534158,
+        "peak_timestep": 401,
+        "generation_cost": {
+          "seconds": 9.678469591000066,
+          "allocated_before_mib": 2249.3701171875,
+          "peak_allocated_mib": 3017.5888671875,
+          "additional_peak_mib": 768.21875,
+          "peak_reserved_mib": 3776.0
+        },
+        "full_bank_seconds": 20.551694087000726,
+        "full_bank_plus_one_image_seconds": 30.230163678000793,
+        "incremental_bank_seconds": 11.45249547400067,
+        "incremental_bank_plus_image_seconds": 21.130965065000737,
+        "current_run_peak_allocated_mib": 3017.5888671875,
+        "reference_costs_are_historical": true,
+        "cost_scope": "bank generation+decode/scoring and guided sampler+trace+decode; excludes I/O and setup"
+      },
+      "bank_png_checks": [
+        {
+          "index": 0,
+          "seed": 10000,
+          "luminance": 0.4634234309196472,
+          "reward": -0.05596846714615822,
+          "png_luminance": 0.4634251594543457,
+          "quantization_gap": 1.7285346984863281e-06
+        },
+        {
+          "index": 1,
+          "seed": 10001,
+          "luminance": 0.4684646427631378,
+          "reward": -0.05360861495137215,
+          "png_luminance": 0.4684637784957886,
+          "quantization_gap": 8.642673492431641e-07
+        },
+        {
+          "index": 2,
+          "seed": 10002,
+          "luminance": 0.42623981833457947,
+          "reward": -0.0749446302652359,
+          "png_luminance": 0.4262368679046631,
+          "quantization_gap": 2.950429916381836e-06
+        },
+        {
+          "index": 3,
+          "seed": 10003,
+          "luminance": 0.47223493456840515,
+          "reward": -0.05187692120671272,
+          "png_luminance": 0.4722338914871216,
+          "quantization_gap": 1.043081283569336e-06
+        },
+        {
+          "index": 4,
+          "seed": 10004,
+          "luminance": 0.39148569107055664,
+          "reward": -0.09518107026815414,
+          "png_luminance": 0.3914850652217865,
+          "quantization_gap": 6.258487701416016e-07
+        },
+        {
+          "index": 5,
+          "seed": 10005,
+          "luminance": 0.4590558409690857,
+          "reward": -0.058054082095623016,
+          "png_luminance": 0.45905715227127075,
+          "quantization_gap": 1.3113021850585938e-06
+        },
+        {
+          "index": 6,
+          "seed": 10006,
+          "luminance": 0.4248318076133728,
+          "reward": -0.07571753114461899,
+          "png_luminance": 0.42483392357826233,
+          "quantization_gap": 2.115964889526367e-06
+        },
+        {
+          "index": 7,
+          "seed": 10007,
+          "luminance": 0.4261862635612488,
+          "reward": -0.0749739557504654,
+          "png_luminance": 0.4261854887008667,
+          "quantization_gap": 7.748603820800781e-07
+        },
+        {
+          "index": 8,
+          "seed": 10008,
+          "luminance": 0.44757407903671265,
+          "reward": -0.06371884047985077,
+          "png_luminance": 0.44757387042045593,
+          "quantization_gap": 2.086162567138672e-07
+        },
+        {
+          "index": 9,
+          "seed": 10009,
+          "luminance": 0.4420233964920044,
+          "reward": -0.06655192375183105,
+          "png_luminance": 0.4420205354690552,
+          "quantization_gap": 2.86102294921875e-06
+        },
+        {
+          "index": 10,
+          "seed": 10010,
+          "luminance": 0.40132850408554077,
+          "reward": -0.08920465409755707,
+          "png_luminance": 0.4013296365737915,
+          "quantization_gap": 1.1324882507324219e-06
+        },
+        {
+          "index": 11,
+          "seed": 10011,
+          "luminance": 0.47494280338287354,
+          "reward": -0.050650738179683685,
+          "png_luminance": 0.4749433398246765,
+          "quantization_gap": 5.364418029785156e-07
+        },
+        {
+          "index": 12,
+          "seed": 10012,
+          "luminance": 0.4558548331260681,
+          "reward": -0.05960685759782791,
+          "png_luminance": 0.45585396885871887,
+          "quantization_gap": 8.642673492431641e-07
+        },
+        {
+          "index": 13,
+          "seed": 10013,
+          "luminance": 0.3857753872871399,
+          "reward": -0.09873709827661514,
+          "png_luminance": 0.38577234745025635,
+          "quantization_gap": 3.039836883544922e-06
+        },
+        {
+          "index": 14,
+          "seed": 10014,
+          "luminance": 0.45316439867019653,
+          "reward": -0.06092780828475952,
+          "png_luminance": 0.4531608521938324,
+          "quantization_gap": 3.546476364135742e-06
+        },
+        {
+          "index": 15,
+          "seed": 10015,
+          "luminance": 0.43747711181640625,
+          "reward": -0.06891825795173645,
+          "png_luminance": 0.43747884035110474,
+          "quantization_gap": 1.7285346984863281e-06
+        }
+      ],
+      "reward_recomputed": -0.07051263004541397,
+      "luminance_recomputed": 0.43445783853530884,
+      "absolute_error_relative_reduction_vs_base": 0.00841158598926961,
+      "absolute_error_relative_reduction_vs_reference": 0.009108739641402575,
+      "squared_error_relative_reduction_vs_base": 0.01675242161409074,
+      "squared_error_relative_reduction_vs_reference": 0.018134437919571922,
+      "image_rmse_vs_base": 0.09791742265224457,
+      "image_rmse_vs_reference": 0.07537355273962021,
+      "bank_reward_min": -0.09873709827661514,
+      "bank_reward_max": -0.050650738179683685,
+      "bank_luminance_min": 0.3857753872871399,
+      "bank_luminance_max": 0.47494280338287354,
+      "bank_luminance_mean": 0.439378933981061,
+      "bank_rewards_better_than_base": 10,
+      "bank_reward_logit_span": 3.191507995574675,
+      "peak_allocated_gib": 2.946864128112793,
+      "strong_correction_steps": 1,
+      "step_allocated_memory_min_mib": 2249.626953125,
+      "step_allocated_memory_max_mib": 2249.626953125
+    },
+    {
+      "result": {
+        "label": "bank8_steps20",
+        "beta": 66.37033847314085,
+        "bank_size": 8,
+        "lookahead_steps": 20,
+        "reward": -0.07089627534151077,
+        "mean_luminance": 0.4337364435195923,
+        "absolute_error": 0.26626355648040767,
+        "delta_reward_vs_base": 0.0008177608251571655,
+        "delta_reward_vs_reference_8x5": 0.0009187012910842896,
+        "ess_reward_below_1_01_steps": 49,
+        "mean_ess": 1.0058400177048312,
+        "mean_ess_reward": 1.0002669624175213,
+        "unchanged_noise_steps": 41,
+        "max_relative_noise_correction": 0.007218623842640608,
+        "peak_timestep": 981,
+        "generation_cost": {
+          "seconds": 8.706280307999805,
+          "allocated_before_mib": 2248.8701171875,
+          "peak_allocated_mib": 3017.0888671875,
+          "additional_peak_mib": 768.21875,
+          "peak_reserved_mib": 3774.0
+        },
+        "full_bank_seconds": 31.487597230999654,
+        "full_bank_plus_one_image_seconds": 40.19387753899946,
+        "incremental_bank_seconds": 31.487597230999654,
+        "incremental_bank_plus_image_seconds": 40.19387753899946,
+        "current_run_peak_allocated_mib": 3017.0888671875,
+        "reference_costs_are_historical": true,
+        "cost_scope": "bank generation+decode/scoring and guided sampler+trace+decode; excludes I/O and setup"
+      },
+      "bank_png_checks": [
+        {
+          "index": 0,
+          "seed": 10000,
+          "luminance": 0.5090735554695129,
+          "reward": -0.03645290434360504,
+          "png_luminance": 0.5090720057487488,
+          "quantization_gap": 1.5497207641601562e-06
+        },
+        {
+          "index": 1,
+          "seed": 10001,
+          "luminance": 0.5237482190132141,
+          "reward": -0.031064685434103012,
+          "png_luminance": 0.5237469673156738,
+          "quantization_gap": 1.2516975402832031e-06
+        },
+        {
+          "index": 2,
+          "seed": 10002,
+          "luminance": 0.37735724449157715,
+          "reward": -0.10409834235906601,
+          "png_luminance": 0.3773607611656189,
+          "quantization_gap": 3.516674041748047e-06
+        },
+        {
+          "index": 3,
+          "seed": 10003,
+          "luminance": 0.5458332300186157,
+          "reward": -0.023767389357089996,
+          "png_luminance": 0.5458331108093262,
+          "quantization_gap": 1.1920928955078125e-07
+        },
+        {
+          "index": 4,
+          "seed": 10004,
+          "luminance": 0.3759075403213501,
+          "reward": -0.10503591597080231,
+          "png_luminance": 0.37590718269348145,
+          "quantization_gap": 3.5762786865234375e-07
+        },
+        {
+          "index": 5,
+          "seed": 10005,
+          "luminance": 0.5004075765609741,
+          "reward": -0.039837129414081573,
+          "png_luminance": 0.5004074573516846,
+          "quantization_gap": 1.1920928955078125e-07
+        },
+        {
+          "index": 6,
+          "seed": 10006,
+          "luminance": 0.42308878898620605,
+          "reward": -0.07667981088161469,
+          "png_luminance": 0.42308664321899414,
+          "quantization_gap": 2.1457672119140625e-06
+        },
+        {
+          "index": 7,
+          "seed": 10007,
+          "luminance": 0.44622552394866943,
+          "reward": -0.06440147757530212,
+          "png_luminance": 0.4462229907512665,
+          "quantization_gap": 2.5331974029541016e-06
+        }
+      ],
+      "reward_recomputed": -0.07089627534151077,
+      "luminance_recomputed": 0.4337364435195923,
+      "absolute_error_relative_reduction_vs_base": 0.005717861935630286,
+      "absolute_error_relative_reduction_vs_reference": 0.006416909457775621,
+      "squared_error_relative_reduction_vs_base": 0.011403079074459588,
+      "squared_error_relative_reduction_vs_reference": 0.01279261421728728,
+      "image_rmse_vs_base": 0.019052518531680107,
+      "image_rmse_vs_reference": 0.12089158594608307,
+      "bank_reward_min": -0.10503591597080231,
+      "bank_reward_max": -0.023767389357089996,
+      "bank_luminance_min": 0.3759075403213501,
+      "bank_luminance_max": 0.5458332300186157,
+      "bank_luminance_mean": 0.46270520985126495,
+      "bank_rewards_better_than_base": 5,
+      "bank_reward_logit_span": 5.393819618565541,
+      "peak_allocated_gib": 2.946375846862793,
+      "strong_correction_steps": 0,
+      "step_allocated_memory_min_mib": 2249.126953125,
+      "step_allocated_memory_max_mib": 2249.126953125
+    }
+  ],
+  "scope": "Independent CPU checks of saved tensors, source hashes, configurations, diagnostics and cost accounting.",
+  "limitations": [
+    "One development prompt, one evaluation seed, one common beta; no statistical generalization.",
+    "No SD1.5 forward or bank regeneration was rerun locally, and no archived source was executed.",
+    "Bank floating-point images and bank initial noise tensors are not saved. Scores are checked against logged luminance and quantized PNGs; seed regeneration is supported by the exact shipped source and metadata.",
+    "Runtime, memory and no-grad/frozen flags are saved GPU logs, not independently measured here.",
+    "Sixteen-candidate full-bank cost includes the original eight candidates historical measured cost; current incremental cost is reported separately.",
+    "All-weight formula reconstruction is audited separately."
+  ],
+  "reference_archive_sha256": "2c50a70d5c272733af42c1ed8fdafd8007f69d8e9d077c931ce60636fb3f3c03",
+  "reference_rows": {
+    "BASE": {
+      "label": "BASE",
+      "method": "BASE",
+      "beta": 0.0,
+      "reward": -0.07171403616666794,
+      "delta_reward_vs_base": 0.0,
+      "mean_luminance": 0.4322052299976349,
+      "absolute_error": 0.26779477000236507,
+      "bank_size": 0,
+      "lookahead_steps": 0,
+      "min_ess": null,
+      "min_ess_reward": null,
+      "concentrated_base_steps": 0,
+      "concentrated_reward_steps": 0,
+      "zero_guidance_steps": 0,
+      "unchanged_noise_steps": 0,
+      "strong_correction_steps": 0,
+      "max_relative_correction": 0,
+      "seconds": 7.2533641800000055,
+      "allocated_before_mib": 2247.6123046875,
+      "peak_allocated_mib": 3015.8310546875,
+      "additional_peak_mib": 768.21875,
+      "peak_reserved_mib": 3774.0
+    },
+    "LiDAR_1": {
+      "label": "LiDAR_1",
+      "method": "LiDAR",
+      "beta": 66.37033847314085,
+      "reward": -0.07181497663259506,
+      "delta_reward_vs_base": -0.00010094046592712402,
+      "mean_luminance": 0.4320168197154999,
+      "absolute_error": 0.2679831802845001,
+      "bank_size": 8,
+      "lookahead_steps": 5,
+      "min_ess": 1.0,
+      "min_ess_reward": 1.0,
+      "concentrated_base_steps": 13,
+      "concentrated_reward_steps": 20,
+      "zero_guidance_steps": 5,
+      "unchanged_noise_steps": 10,
+      "strong_correction_steps": 0,
+      "max_relative_correction": 0.029309760342601323,
+      "seconds": 7.874057546000017,
+      "allocated_before_mib": 2248.11279296875,
+      "peak_allocated_mib": 3016.33154296875,
+      "additional_peak_mib": 768.21875,
+      "peak_reserved_mib": 3774.0
+    }
+  },
+  "manifest": {
+    "reference_dir": "/content/diffusion-reward-guidance/runs/lidar_20261011_150803_067176_UTC",
+    "beta": 66.37033847314085,
+    "experiments": [
+      {
+        "bank_size": 16,
+        "lookahead_steps": 5
+      },
+      {
+        "bank_size": 8,
+        "lookahead_steps": 20
+      }
+    ],
+    "reference_sha256": {
+      "LiDAR_1_steps.json": "be7087feb43b68a44dfbe437a73e3ad78fa3c2815a4f0963f4ca907fa904845e",
+      "LiDAR_1_tensors.pt": "6960d80d69ee046fc52e9c9d50848c36b956c4259ee02dc61c2bba77bbfb6095",
+      "environment.json": "90a490aba5e45f4ac6b804b2aeea1c7d212cb98764ea1f8654b55f9c113a43c9",
+      "inputs.pt": "87e79dbdc5d1227ff0cc44a24b392a6ab4582f72f0a77ec734a5eb6ab68daf5e",
+      "BASE.png": "595218c735839080ca327cbaaf70726c2350494e9f15ff3b9cf6a5fc2a965ac9",
+      "algorithm_checks.json": "b886f7909b217c5397d6b21223415f64d3ebba66ab1caf9136ada029ce335d86",
+      "LiDAR_1.png": "ef5451971608f7c3b568c58231fb831e2f5a64299f6eb4a0295dc87c5e3b212f",
+      "BASE_tensors.pt": "7114e92bb250d57774864d441907aa7c25145a8c416f15a9c6677912c3c5fd25",
+      "results.json": "abcd9a0b37e0402aaafec870771e9efb1c4daa88c26d950db97e844cfd48b0dc",
+      "bank/lookahead_07_seed10007.png": "6f0b15eb994ff9146c84c745ef8e9bcf81dca8c8c36a60fd5613eb331a827585",
+      "bank/bank.pt": "e12a8986c85fb1aa712f1e42a1cea47e19828b8c3304fc94b74b4edb7903da2b",
+      "bank/lookahead_05_seed10005.png": "8cdc7740948a91dddaa89d4cb4061a6b2d6ee2564dea1052162bb6f28314f064",
+      "bank/bank_progress.json": "f9b27cff3e403c58f5a61b7c1598d58edd8695e727d39d93df9ee61219b72429",
+      "bank/lookahead_04_seed10004.png": "04037eeee2c2d205c2a8dca7ad3c81cad13c847204db3e82638a7a538c4ff6c0",
+      "bank/lookahead_03_seed10003.png": "10ee0ec147039edf4ba94e387826544cd4f29040635f208e4136a582bfd7f460",
+      "bank/bank_metadata.json": "2f8acd9b02f5176684609debfdaef6013ff55b8678be76543b0c168fcd3c310d",
+      "bank/lookahead_01_seed10001.png": "99ae580c295d115221a50d27209d3a5a0d905d47229e1123b304a5dc11de0eac",
+      "bank/lookahead_00_seed10000.png": "0d14439b034bf72fcc99daf5cea90c5bd767d835edf4735c44be5c5bbfff9117",
+      "bank/lookahead_02_seed10002.png": "f355480911881da1e941b6f3c51d06d4a6a3decb546af0b16b0504fd9b982bec",
+      "bank/lookahead_06_seed10006.png": "25aa723649518e97e5a0e4c45362f20495dc8be25dc40293ead1940ded88fd80"
+    },
+    "source_sha256": {
+      "baseline.py": "002bf07bf1a47195f564c8eb87d12a106940df6bb394b497a353d8052968d004",
+      "rewards.py": "3830cfeb746038ccbde4713a0f403a9a48fabc48ee0f07c5e8e239c167d0e236",
+      "lidar_bank_ablations_colab.py": "3b8840b8f737994d61c7cee55a46b7698f3dfe56aefa343cd547f8e2f060d5ed",
+      "guidance_lidar.py": "0dff8e4529b69c274b08e2457a67e2745e77fd30355eadf49c2019a7cdc7aac2"
+    },
+    "current_gpu": "Tesla T4",
+    "current_torch": "2.8.0+cu126",
+    "current_cuda": "12.6",
+    "deterministic_algorithms": true,
+    "status": "prepared",
+    "scope": "one prompt, one seed, fixed beta; no guarantee of reward improvement"
+  },
+  "incremental_total_measured_seconds": 61.324842604000196,
+  "passed": true
+}

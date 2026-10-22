@@ -1,0 +1,17 @@
+{
+  "prompts_file": "../data/prompts_50_heldout.txt",
+  "exclude_prompts_file": "../data/prompts_50_dev.txt",
+  "split": "eval",
+  "prompt_limit": 8,
+  "seeds": [0, 1, 2, 3],
+  "methods": ["base", "cov", "full", "lidar"],
+  "rewards": [
+    {"name": "luminance", "parameters": {"target": 0.7}, "betas": [115.46]}
+  ],
+  "height": 512,
+  "width": 512,
+  "num_steps": 50,
+  "guidance_scale": 7.5,
+  "tau2": 1.0,
+  "bank": {"size": 16, "num_steps": 5, "seed_start": 10000}
+}

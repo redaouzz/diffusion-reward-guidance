@@ -1,0 +1,753 @@
+% Projet personnel --- rapport de recherche en français, 11 octobre 2026.
+% Compiler : pdfLaTeX (deux passages). Bibliographie intégrée : pas de BibTeX.
+% Les illustrations sont fournies dans figures/. Aucun résultat H100 inventé.
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.35cm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{graphicx,booktabs,array}
+\usepackage{xcolor,microtype,fancyhdr,enumitem}
+\usepackage[hidelinks,hypertexnames=false]{hyperref}
+\definecolor{ink}{RGB}{29,48,65}
+\definecolor{draftbg}{RGB}{242,245,247}
+\hypersetup{pdftitle={Guidage de Stable Diffusion par récompenses différentiables},pdfauthor={Réda Ouzzane}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Guidage par récompense --- Projet personnel}
+\fancyhead[R]{\small 11 octobre 2026}
+\fancyfoot[C]{\thepage}
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{2em}
+\clubpenalty=10000
+\widowpenalty=10000
+\brokenpenalty=10000
+\setlist{nosep}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\ESS}{\operatorname{ESS}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\enattente}{\textit{à renseigner}}
+% La source reste compilable seule dans un éditeur ne transférant pas les images.
+% Une compilation du ZIP complet affiche automatiquement les vraies illustrations.
+\newcommand{\reportimage}[2]{\IfFileExists{#2}{\includegraphics[width=#1]{#2}}{\fbox{\parbox[c][0.14\textheight][c]{\dimexpr#1-2\fboxsep-2\fboxrule\relax}{\centering\small Illustration jointe au projet LaTeX.\\Compiler le ZIP complet pour l'afficher.}}}}
+\newcommand{\draftnote}[1]{\par\medskip\noindent\colorbox{draftbg}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\small #1}}\par\medskip}
+
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{1.3cm}
+{\large Projet personnel de recherche\par}
+\vspace{0.35cm}
+{\large Modèles de diffusion et guidage à l'inférence\par}
+\vspace{1.7cm}
+{\LARGE\bfseries Guidage de Stable Diffusion\par par récompenses différentiables\par}
+\vspace{0.6cm}
+{\large Approximation isotrope, gradient complet\par et comparaison à LiDAR\par}
+\vspace{1.7cm}
+{\Large Réda Ouzzane\par}
+\vspace{0.6cm}
+{11 octobre 2026\par}
+\vfill
+\begin{minipage}{0.88\textwidth}
+\small
+Étude de la guidance de luminance sur Stable Diffusion 1.5. Comparaison de BASE, COV, FULL et LiDAR sur huit prompts réservés à l'évaluation et quatre graines, après calibration du coefficient commun sur cinq prompts de développement.
+\end{minipage}
+\vspace{0.9cm}
+\end{titlepage}
+
+\pagenumbering{roman}
+\section*{Résumé}
+Un modèle de diffusion préentraîné ne produit pas nécessairement des images qui satisfont une propriété définie après son entraînement. Le guidage à l'inférence permet d'introduire cette propriété au moyen d'une récompense. L'objectif étudié est l'échantillonnage d'une distribution qui repondère les sorties du modèle par l'exponentielle de cette récompense.
+
+Ce travail compare deux méthodes utilisant son gradient. FULL différencie la récompense évaluée au latent propre prédit à travers le décodeur VAE et le U-Net. COV remplace le Jacobien de cette prédiction par une approximation isotrope issue d'une identité de covariance. Les deux méthodes sont comparées à LiDAR, dont la correction repose sur une banque de générations anticipées. La référence BASE conserve le conditionnement textuel, mais n'utilise aucune guidance de récompense.
+
+Nous avons d'abord validé la boucle DDIM, les gradients et la libération des graphes de calcul sur T4. Les pilotes ont ensuite orienté les expériences : à coefficient commun, COV corrigeait moins fortement que FULL ; pour LiDAR, de meilleurs scores de banque pouvaient coïncider avec une guidance presque nulle. Ces deux observations ont motivé un diagnostic d'amplitude et des ablations de la banque avant le passage à H100.
+
+La campagne H100 compare les quatre méthodes sur huit prompts et quatre graines, pour une luminance cible de $0{,}7$. La calibration sur cinq prompts DEV a fixé $\beta=115{,}46$. FULL améliore la récompense dans les 32 paires, avec un gain moyen de $0{,}03112$, contre $0{,}00102$ pour COV. LiDAR gagne $0{,}00163$ en moyenne, avec cinq baisses locales et un coût amorti de $3{,}17$ s par image. COV économise de la mémoire par rapport à FULL, mais leurs temps restent proches : $24{,}34$ et $25{,}99$ s par image. Le gain de FULL s'accompagne de moyennes CLIPScore et HPSv2 inférieures à BASE. L'inspection des PNG H100, non récupérés localement dans les délais, reste nécessaire pour relier ces scores aux changements visuels.
+
+\vspace{0.5em}
+\noindent\textbf{Mots-clés :} modèles de diffusion, guidage à l'inférence, récompense différentiable, formule de Tweedie, DDIM, LiDAR.
+\clearpage
+{\small\setlength{\parskip}{2pt}\tableofcontents}
+\clearpage
+\pagenumbering{arabic}
+
+\section{Introduction et question de recherche}
+Les modèles de diffusion génèrent une image en inversant progressivement un processus de bruitage. Le conditionnement textuel oriente ce débruitage vers le contenu décrit par un prompt. Il ne garantit toutefois pas le respect d'un critère supplémentaire, comme une luminance moyenne imposée ou une symétrie spatiale. Réentraîner le modèle pour chaque critère serait coûteux. Le guidage à l'inférence cherche à modifier les générations sans changer les poids du modèle.
+
+Ce projet formule cet objectif à l'aide d'une récompense $R$. La distribution recherchée favorise les images dont la récompense est élevée, tout en restant liée à la distribution du modèle préentraîné. La difficulté consiste à utiliser une récompense définie sur une image finale alors que l'échantillonnage manipule des latents bruités. Une évaluation directe de $R$ sur ces latents n'a pas de sens. Il faut estimer l'information que leur débruitage futur apporte sur la récompense.
+
+Certaines méthodes de guidage exploitent uniquement des valeurs de récompense. Ce projet étudie ce que permet l'accès à son gradient. Nous évaluons la récompense sur une prédiction du latent propre, puis différencions cette approximation de la valeur future \cite{uehara,dps,universal,lidar}. FULL conserve la dérivée du U-Net ; COV la remplace par une approximation isotrope pour réduire le besoin mémoire. LiDAR fournit un comparateur sans rétropropagation.
+
+La question étudiée est la suivante : \emph{à récompense et coefficient fixés, qu'apporte la dérivée complète de FULL par rapport à l'approximation COV et à la banque LiDAR, en termes de récompense, de scores appris et de coût ?} Le coefficient commun maintient une cible théorique commune. Les amplitudes de correction et les budgets de calcul restent propres à chaque méthode.
+
+La campagne principale est limitée à la luminance. Cette récompense est simple à interpréter, possède un gradient explicite et permet de contrôler les erreurs de signe ou d'échelle. Les récompenses de symétrie, de masque spatial et ImageReward ont également été implémentées. Leurs gradients ont été vérifiés sur une image de développement. Elles ne font pas l'objet d'une comparaison finale dans cette version. Ce périmètre réduit répond au budget de calcul et au temps consacrés à cette première étude. La campagne finale évalue huit prompts réservés et quatre graines, après fixation du coefficient commun sur cinq prompts de développement. Les résultats quantitatifs sont analysés séparément des observations exploratoires.
+
+\section{Cadre mathématique et méthodes}
+\subsection{Distribution cible et signification de la récompense}
+Pour un prompt fixé $c$, on note $z_0\in\R^d$ le latent propre et $p(z_0\mid c)$ la distribution de référence. Le décodeur VAE, suivi du changement d'échelle vers $[0,1]$ et du bornage des pixels, est noté $D$. La récompense sur le latent est $r(z_0)=R(D(z_0))$. La cible est
+\begin{equation}\label{eq:target}
+\pi_\beta(z_0\mid c)=\frac{p(z_0\mid c)\exp(\beta r(z_0))}{Z_\beta(c)},
+\qquad Z_\beta(c)=\E_{p(\cdot\mid c)}[\exp(\beta r(z_0))].
+\end{equation}
+Pour $\beta>0$ et lorsque la constante de normalisation est finie, cette distribution résout
+\begin{equation}\label{eq:variational}
+\max_q\left\{\E_q[r(z_0)]-\frac{1}{\beta}\KL\bigl(q\,\|\,p(\cdot\mid c)\bigr)\right\}.
+\end{equation}
+Le premier terme favorise la récompense. Le second pénalise l'écart à la référence. À $\beta=0$, la cible est définie par continuité et retrouve $p$. Une augmentation de $\beta$ renforce la repondération. Elle ne constitue pas une garantie de meilleure qualité perceptuelle.
+
+La comparaison principale utilise la même définition de $r$ et le même $\beta$ pour COV, FULL et LiDAR. Les trois méthodes visent donc la même cible \emph{nominale}. Dans l'implémentation, le score appris, la CFG et la discrétisation DDIM introduisent des approximations supplémentaires. Nous ne supposons pas qu'elles échantillonnent exactement la loi \eqref{eq:target}.
+
+\subsection{Pourquoi le score guidé est difficile à calculer}
+Le processus de bruitage idéal est
+\begin{equation}
+z_t=\alpha_tz_0+\sigma_t\varepsilon,\qquad
+\varepsilon\sim\mathcal N(0,I),\qquad \alpha_t^2+\sigma_t^2=1.
+\end{equation}
+Dans la convention de Stable Diffusion, $\alpha_t=\sqrt{\bar\alpha_t}$ et $\sigma_t=\sqrt{1-\bar\alpha_t}$. Le réseau prédit le bruit. Sa sortie fournit une approximation du score : $s_\theta(z_t,t,c)=-\varepsilon_\theta(z_t,t,c)/\sigma_t$.
+
+En bruitant la distribution cible, on obtient des marginales $\pi_{\beta,t}$. Leur score se décompose en
+\begin{align}
+\nabla_{z_t}\log\pi_{\beta,t}(z_t\mid c)
+&=\nabla_{z_t}\log p_t(z_t\mid c)+g_t(z_t,c),\label{eq:score}\\
+g_t(z_t,c)&=\nabla_{z_t}\log h_t(z_t,c),\qquad
+h_t=\E\!\left[\exp(\beta r(z_0))\mid z_t,c\right].\label{eq:tilt}
+\end{align}
+Le terme $h_t$ moyenne une récompense exponentiée sur les origines propres compatibles avec $z_t$. Cette espérance conditionnelle est inaccessible directement. Des simulations de débruitage répétées permettraient de l'approcher, mais leur coût se répéterait à chaque étape. Les méthodes étudiées remplacent cette opération par des approximations différentes.
+
+\subsection{BASE : DDIM avec conditionnement textuel}
+Le prédicteur utilisé combine les branches conditionnelle et inconditionnelle du U-Net :
+\begin{equation}\label{eq:cfg}
+\varepsilon_{\mathrm{CFG}}
+=\varepsilon_{\mathrm{uncond}}
++w\bigl(\varepsilon_{\mathrm{cond}}-\varepsilon_{\mathrm{uncond}}\bigr),
+\qquad w=7{,}5.
+\end{equation}
+BASE utilise cette prédiction sans correction de récompense. Le terme \og non guidé\fg{} désigne donc ici l'absence de guidance par $R$, et non l'absence de CFG \cite{cfg}.
+
+Pour un passage du temps $t$ au temps inférieur $s$, DDIM déterministe applique
+\begin{equation}\label{eq:ddim}
+\widehat z_0=\frac{z_t-\sigma_t\varepsilon}{\alpha_t},
+\qquad z_s=\alpha_s\widehat z_0+\sigma_s\varepsilon.
+\end{equation}
+Le paramètre de bruit supplémentaire vaut $\eta=0$. Ce choix facilite les comparaisons appariées : les méthodes commencent avec le même latent initial et n'ajoutent pas de bruit aléatoire entre les étapes. DDIM permet aussi de conserver les 50 pas retenus pour l'étude \cite{ddim}. DDPM n'a pas été ajouté, afin de concentrer le budget sur les approximations de guidance. Le coût dépend cependant du nombre d'évaluations du réseau ; un schéma stochastique n'est pas intrinsèquement plus coûteux à nombre de pas égal.
+
+Toutes les méthodes guidées remplacent le bruit par
+\begin{equation}\label{eq:noise}
+\varepsilon_{\mathrm{guided}}=\varepsilon_{\mathrm{CFG}}-\sigma_tg_t.
+\end{equation}
+Cette même prédiction corrigée intervient dans les deux termes de \eqref{eq:ddim}. Ne corriger que la prédiction propre ou que le second terme définirait une autre mise à jour.
+
+\subsection{FULL : différencier l'approximation de Tweedie}
+La formule de Tweedie relie le score à la moyenne conditionnelle du latent propre \cite{efron}. Nous utilisons la prédiction
+\begin{equation}\label{eq:mu}
+\mu_t(z_t)=\frac{z_t-\sigma_t\varepsilon_{\mathrm{CFG}}(z_t,t,c)}{\alpha_t}.
+\end{equation}
+Si $\varepsilon_{\mathrm{CFG}}$ était remplacé par le bruit associé au score exact de $p_t(\cdot\mid c)$, cette expression serait $\E[z_0\mid z_t,c]$. Combiner deux scores exacts par CFG ne suffit pas à garantir cette identité. Avec le réseau appris et la CFG, $\mu_t$ demeure une estimation. L'approximation ponctuelle remplace toute la loi conditionnelle par sa moyenne :
+\begin{equation}\label{eq:tweedie}
+\log h_t(z_t,c)\approx\beta r\bigl(\mu_t(z_t)\bigr).
+\end{equation}
+En notant $v_t=\nabla_zr(z)|_{z=\mu_t}$, la règle de dérivation en chaîne donne
+\begin{equation}\label{eq:full}
+g_t^{\mathrm{FULL}}=\beta J_{\mu_t}^{\mathsf T}v_t,
+\qquad J_{\mu_t}=\frac{I-\sigma_tJ_{\varepsilon_{\mathrm{CFG}}}}{\alpha_t}.
+\end{equation}
+La rétropropagation calcule le produit vecteur--Jacobien sans construire de matrice dense. Elle traverse la récompense, le VAE et les deux branches CFG. Les paramètres restent gelés ; la dérivée recherchée porte uniquement sur le latent courant.
+
+Le nom FULL désigne la dérivée complète de \eqref{eq:tweedie}. Il ne désigne pas le gradient exact de \eqref{eq:tilt}. L'espérance d'une récompense exponentiée n'est généralement pas son évaluation à la moyenne. Cette différence peut être importante aux temps fortement bruités, où plusieurs images propres restent compatibles avec le même latent.
+
+\subsection{COV : approximer le Jacobien par une covariance isotrope}
+La méthode COV cherche à éviter la rétropropagation dans le U-Net. Pour la moyenne conditionnelle exacte $\mu_t=\E[z_0\mid z_t,c]$ du modèle de corruption gaussien, le Jacobien vérifie
+\begin{equation}\label{eq:covidentity}
+J_{\mu_t}=\frac{\alpha_t}{\sigma_t^2}\Cov(z_0\mid z_t,c).
+\end{equation}
+Cette identité concerne la moyenne conditionnelle véritable. La prédiction $\mu_t$ construite avec le U-Net appris et la CFG ne la vérifie pas nécessairement. Nous l'utilisons pour motiver une approximation heuristique de son Jacobien. La covariance est alors remplacée par celle d'un modèle auxiliaire isotrope de variance a priori $\tau^2$ :
+\begin{equation}
+\Cov(z_0\mid z_t,c)\approx
+\frac{\tau^2\sigma_t^2}{\sigma_t^2+\alpha_t^2\tau^2}I.
+\end{equation}
+Il en résulte
+\begin{equation}\label{eq:cov}
+g_t^{\mathrm{COV}}=\beta\kappa_tv_t,
+\qquad \kappa_t=\frac{\alpha_t\tau^2}{\sigma_t^2+\alpha_t^2\tau^2}.
+\end{equation}
+Nous fixons $\tau^2=1$, d'où $\kappa_t=\alpha_t$. Ce choix supprime un hyperparamètre de réglage et fournit une règle temporelle simple. Il ne signifie pas que le posterior de Stable Diffusion possède une covariance identité. L'isotropie et la variance auxiliaire constituent des hypothèses de la méthode.
+
+Le U-Net calcule $\mu_t$ sans conserver son graphe. Une copie indépendante de $\mu_t$ est ensuite rendue différentiable pour obtenir $v_t$. Le VAE et la récompense restent dans le graphe. Cette construction est différente d'un simple détachement de la prédiction de bruit à l'intérieur de \eqref{eq:mu}. Ce dernier produirait $\beta v_t/\alpha_t$, et non \eqref{eq:cov}.
+
+COV conserve ainsi la direction du gradient au latent propre. Elle ignore les couplages et l'anisotropie que le Jacobien complet peut introduire. Son intérêt expérimental réside dans le compromis entre cette perte d'information et le coût évité dans le U-Net.
+
+\subsection{LiDAR : une correction issue de générations anticipées}
+LiDAR utilise une banque de $n$ latents propres approximatifs $a_i$, générés indépendamment des graines d'évaluation. Leurs récompenses $r_i=r(a_i)$ sont calculées une fois. Pour un latent courant $z_t$, les poids de compatibilité gaussienne sont
+\begin{align}
+L_i(z_t)&=-\frac{\lVert z_t-\alpha_ta_i\rVert_2^2}{2\sigma_t^2},\\
+w_i&=\softmax(L)_i,\qquad
+w_i^R=\softmax(L+\beta r)_i.
+\end{align}
+La dérivation de l'annexe A.3 donne alors
+\begin{equation}\label{eq:lidar}
+g_t^{\mathrm{LiDAR}}=\frac{\alpha_t}{\sigma_t^2}
+\sum_{i=1}^{n}(w_i^R-w_i)a_i.
+\end{equation}
+Il n'y a pas de facteur $\beta$ supplémentaire devant cette somme. Son effet est déjà inclus dans les poids récompensés. La méthode n'utilise ni gradient de récompense ni rétropropagation dans les réseaux pendant la trajectoire guidée.
+
+Notre implémentation utilise l'estimateur explicité ci-dessus et dérivé en annexe A.3. Les candidats sont produits par un court DDIM. Elle ne reproduit pas l'ensemble des réglages de l'article LiDAR, qui étudie aussi un solveur de banque, des multiplicateurs et des fenêtres de guidance spécifiques \cite{lidar}. Les résultats rapportés concernent donc ce comparateur défini explicitement, et non une reproduction des scores publiés.
+
+\section{Implémentation et validation}
+\subsection{Une construction progressive et réutilisable}
+Le développement a suivi l'ordre BASE, récompenses, COV, FULL, puis LiDAR. COV a été implémentée avant FULL pour vérifier la chaîne VAE--récompense sans conserver le graphe du U-Net. FULL a d'abord été testée sur un seul pas. Les trajectoires complètes ont été lancées après ce contrôle de faisabilité mémoire.
+
+Le c\oe{}ur du code est constitué de fonctions Python dans cinq modules scientifiques. Les notebooks Colab importent ces fonctions. Le lanceur Northflank réutilise les mêmes modules. Ce choix évite deux implémentations concurrentes des équations. La boucle DDIM de référence et ses décorateurs \code{no_grad} ont été conservés. Les chemins différentiables sont séparés.
+
+La campagne utilise un batch de taille un. Les deux branches CFG sont réunies dans un batch de taille deux lors de l'appel au U-Net. Sur GPU, le U-Net fonctionne en FP16. Le VAE et les calculs de gradient de récompense sont en FP32. FULL conserve un backward FP16 à l'intérieur du U-Net ; il ne s'agit donc pas d'une différentiation intégralement FP32.
+
+Après chaque pas, le latent suivant est détaché. FULL conserve le graphe du pas courant, puis le libère avant le suivant. Aucune rétropropagation ne traverse les 50 étapes. Les poids sont gelés, sans accumulation de gradients de paramètres. Les pilotes ont fonctionné sans activation checkpointing ni transfert automatique de modules entre CPU et GPU. Ces optimisations n'ont pas été ajoutées en l'absence de dépassement mémoire observé.
+
+\subsection{Parité de DDIM avec Diffusers}
+La première validation compare BASE à la pipeline officielle avec les mêmes embeddings, le même tenseur de bruit initial et les mêmes timesteps. Le pilote T4 porte sur cinq prompts de développement et la graine 0. Les 50 latents intermédiaires de chaque génération sont comparés, soit 250 états. Les exports audités rapportent une égalité exacte. Le contrôle de répétabilité du premier prompt retrouve également les mêmes sorties.
+
+Une tolérance secondaire de $10^{-5}$ en erreur absolue et relative était définie pour détecter une divergence numérique. Elle n'a pas remplacé la recherche du premier pas divergent. L'identité visuelle des deux images était attendue : cette expérience vérifiait une implémentation du même algorithme, sans méthode guidée concurrente.
+
+La configuration originale du scheduler est conservée : prédiction du bruit, \code{steps_offset=1}, \code{set_alpha_to_one=False}, \code{clip_sample=False} et espacement \code{leading}. La grille à 50 pas vaut $981,961,\ldots,1$. Le dernier pas utilise la convention de repli de Diffusers, fondée sur \code{alphas_cumprod[0]}. Le code ne remplace pas ce coefficient par une valeur idéale choisie à la main. Le facteur d'échelle du VAE provient également de sa configuration.
+
+\subsection{Vérification des récompenses différentiables}
+Les récompenses de luminance, de symétrie et de masque spatial sont implémentées directement sur les tenseurs images. ImageReward utilise la fonction différentiable \code{score_gard} du dépôt officiel \cite{imagereward}. Le prétraitement reste tensoriel pour conserver le gradient. Il comprend le redimensionnement, le recadrage et la normalisation attendus par le réseau. Une conversion en image PIL dans ce chemin couperait la dépendance au latent.
+
+Les contrôles vérifient les formes, la finitude et l'absence de gradients de paramètres. Le test directionnel porte sur le chemin latent--VAE--récompense. Il utilise le gradient latent normalisé, $d=\nabla_zr/\lVert\nabla_zr\rVert_2$ ; la dérivée de référence vaut donc $\nabla_zr\cdot d=\lVert\nabla_zr\rVert_2$, avec $r=R\circ D$. Elle est comparée à une différence finie centrée. Les quatre récompenses ont passé ces contrôles sur un latent final de développement.
+
+Le test de différences finies d'ImageReward a d'abord échoué pour des perturbations de $10^{-2}$ à $10^{-3}$. La norme du gradient latent valait $11{,}23034$, alors que la différence finie à $10^{-3}$ valait $4{,}21918$. Le score au centre était répétable avec et sans graphe. Une grille plus fine a ensuite montré l'accord local : la différence finie valait $11{,}33703$ à $10^{-4}$ et $11{,}19599$ à $3\times10^{-5}$. La tolérance relative de 10\,\% a été conservée. Le test corrigé exige l'accord sur deux pas consécutifs et une ascension locale. L'échec initial et le diagnostic sont archivés.
+
+La diminution du pas a rétabli l'accord local sans modifier le gradient calculé. Le diagnostic initial utilisait donc une perturbation trop grande pour ce test. Nous avons aussi comparé le score ImageReward tensoriel à celui de l'API PIL : sur l'image testée, leurs valeurs étaient respectivement proches de $-0{,}01472$ et $-0{,}02490$. Les deux prétraitements sont conservés comme chemins distincts dans l'évaluation.
+
+\subsection{Identités, stabilité et portée des contrôles}
+Pour COV, FULL et LiDAR, les cas $\beta=0$ et récompense constante doivent retrouver BASE. Les pilotes vérifient l'égalité des 50 états, des latents finaux et des images dans ces cas. Pour LiDAR, une banque à un seul candidat fournit un troisième contrôle : $w_1=w_1^R=1$, donc la correction est nulle.
+
+Les distances LiDAR sont sommées sur les coordonnées latentes. Les remplacer par leur moyenne changerait le noyau et donc l'estimateur. Distances et poids sont calculés en FP64 avec une fonction softmax stable. La correction revient ensuite en FP32, puis le bruit corrigé est converti au format de la boucle DDIM. La taille effective des poids est enregistrée :
+\begin{equation}\label{eq:ess}
+\ESS(w)=\frac{1}{\sum_iw_i^2},\qquad 1\leq\ESS(w)\leq n.
+\end{equation}
+Les deux distributions $w$ et $w^R$ sont suivies. Une ESS proche de un signale une concentration sur un candidat. Elle ne suffit pas, seule, à déterminer l'amplitude de $w^R-w$.
+
+La suite locale documente 75 tests CPU : 44 contrôles scientifiques et 31 contrôles du lanceur, de l'évaluation et de l'analyse. Les tests d'orchestration utilisent des modèles simulés lorsqu'aucun GPU n'est requis. Ils vérifient les sauvegardes, la reprise et les agrégations, mais ne valident pas l'exécution des réseaux préentraînés sur H100.
+
+Les tests à $\beta=0$ vérifient les cas limites du code ; ils ne garantissent pas qu'un coefficient positif améliore la récompense finale. Nous conservons donc les baisses de récompense dans l'analyse expérimentale, après vérification des identités et des gradients.
+
+\section{Protocole expérimental}
+\subsection{Configuration commune et périmètre de la campagne}
+Le modèle retenu est \code{stable-diffusion-v1-5/stable-diffusion-v1-5}, chargé avec Hugging Face Diffusers \cite{ldm}. La révision des poids est fixée. Toutes les images finales ont une résolution de $512\times512$ pixels. Les latents ont la forme $4\times64\times64$. Les méthodes utilisent DDIM à 50 pas, $\eta=0$, une CFG de $7{,}5$ et le même prompt négatif vide.
+
+La récompense principale est
+\begin{equation}\label{eq:luminance}
+R_{\mathrm{lum}}(y)=-\bigl(\bar\ell(y)-\ell^\star\bigr)^2,
+\qquad \ell^\star=0{,}7,
+\qquad \ell(y)=0{,}299y_R+0{,}587y_G+0{,}114y_B.
+\end{equation}
+La moyenne $\bar\ell$ porte sur les pixels. La meilleure récompense possible vaut zéro. Augmenter cette récompense signifie rapprocher la luminance de la cible, et non éclaircir systématiquement l'image. Une image initialement plus claire que $0{,}7$ devrait être assombrie.
+
+La campagne principale sur H100 retient finalement les huit premiers prompts du jeu d'évaluation réservé, avec les quatre graines 0, 1, 2 et 3. Chaque couple prompt--graine est exécuté avec BASE, COV, FULL et LiDAR. La campagne compte donc
+\begin{equation}
+8\times4\times(1+3)=128\quad\text{images finales}.
+\end{equation}
+Le coefficient $\beta=115{,}46$ est commun aux trois méthodes guidées. Pour COV, $\tau^2=1$. Pour LiDAR, la banque comprend 16 candidats générés en cinq pas DDIM, avec des graines distinctes des graines d'évaluation. Nous avons réduit le nombre de prompts pour conserver les quatre méthodes et les quatre graines dans le temps disponible. Le setup initial portait sur 50 prompts et quatre récompenses. Cette dernière matrice compterait $200+4\times3\times200=2\,600$ images finales, car les 200 images BASE seraient réutilisées.
+
+Les pilotes ont été exécutés sur NVIDIA T4 dans Google Colab. La calibration et la campagne principale ont été menées sur NVIDIA H100 80 Go dans Northflank, après un test d'intégration sur un prompt DEV. Les durées rapportées sont mesurées sur le matériel de chaque expérience.
+
+\subsection{Séparation du développement et de l'évaluation}
+Les fichiers disponibles contiennent 50 prompts de développement et 50 prompts réservés à l'évaluation. Ces deux listes sont disjointes et proviennent de \code{generation_prompts.txt}. Les résultats sont attribués aux listes effectivement utilisées.
+
+Nous avons retenu les huit premières lignes non vides du fichier held-out avant l'inspection des résultats. Le CSV final contient exactement ces prompts. Le contrôle des deux listes confirme l'absence de chevauchement entre les 50 prompts DEV et les 50 held-out. La sélection par ordre du fichier privilégie une règle reproductible ; elle n'assure pas la représentativité des 50 prompts.
+
+La séparation porte sur les prompts et sur l'usage des résultats. La graine 0 sert au développement et fait aussi partie des graines finales imposées. Cela ne signifie pas que les couples prompt--graine sont réutilisés entre les deux jeux. Les graines de banque LiDAR sont, quant à elles, distinctes des graines d'évaluation.
+
+\subsection{Calibration et justification du coefficient commun}
+Le coefficient $\beta$ est un paramètre de la cible \eqref{eq:target}. Le fixer entre méthodes permet d'étudier différentes approximations d'une même repondération. Il ne s'agit pas de chercher, pour chaque méthode, la meilleure récompense possible avec un réglage indépendant.
+
+Les premiers pilotes COV ont utilisé trois états de la trajectoire BASE, aux indices 0, 24 et 49. La norme relative de correction à $\beta=1$ y servait à dimensionner une grille initiale. Après l'implémentation de FULL, cette calibration a été répétée pour les deux méthodes. Le coefficient commun a été défini par
+\begin{equation}\label{eq:betapilot}
+q_m=\max_{t\in\mathcal T_{\mathrm{sondes}}}
+\frac{\lVert\sigma_tg_t^{m}(\beta=1)\rVert_2}
+{\lVert\varepsilon_{\mathrm{CFG}}\rVert_2},
+\qquad \beta_{\mathrm{pilote}}=\frac{0{,}01}{\max(q_{\mathrm{COV}},q_{\mathrm{FULL}})}.
+\end{equation}
+Cette règle a donné $\beta_{\mathrm{pilote}}\simeq66{,}3703$. Elle contrôle l'échelle sur les trois sondes seulement. Elle ne borne pas les corrections sur les trajectoires guidées. LiDAR a ensuite été évalué directement à ce coefficient. Sa réponse non linéaire à $\beta$ ne permet pas la même extrapolation depuis $\beta=1$.
+
+Une calibration complémentaire a ensuite été menée sur H100, avec cinq prompts DEV, la graine 0 et trois valeurs communes : $\beta\in\{23{,}09;\,66{,}3703;\,115{,}46\}$. BASE a été calculée une fois par prompt. Chaque couple méthode guidée--coefficient a été évalué sur les mêmes cinq prompts. L'expérience compte ainsi cinq générations BASE et 45 générations guidées, soit 50 images finales. Les banques LiDAR de 16 candidats à cinq pas ont été partagées entre les trois coefficients pour chaque prompt, soit 80 générations courtes supplémentaires.
+
+Le critère principal est le gain de récompense apparié par rapport à BASE. Pour une méthode $m$ et un coefficient $\beta$, le gain moyen sur DEV est
+\[
+\overline{\Delta R}_{m}(\beta)=\frac15\sum_{p=1}^{5}
+\left[R(y_{p,0}^{m,\beta})-R(y_{p,0}^{\mathrm{BASE}})\right].
+\]
+La récompense moyenne BASE sur ces cinq prompts vaut $-0{,}091451$. Le tableau~\ref{tab:calibrationh100} reprend les gains calculés à partir des récompenses tensorielles rapportées dans les journaux de calibration.
+
+\begin{table}[htbp]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Méthode & \shortstack{Gain moyen\\$\beta=23{,}09$} & \shortstack{Gain moyen\\$\beta=66{,}3703$} & \shortstack{Gain moyen\\$\beta=115{,}46$} & \shortstack{Prompts améliorés\\$\beta=115{,}46$}\\
+\midrule
+COV & $+0{,}000128$ & $+0{,}000920$ & $+0{,}001780$ & 5/5\\
+FULL & $+0{,}010628$ & $+0{,}023976$ & $+0{,}036983$ & 5/5\\
+LiDAR & $+0{,}001404$ & $+0{,}003515$ & $+0{,}003867$ & 5/5\\
+\bottomrule
+\end{tabular}
+\caption{Calibration H100 sur cinq prompts DEV, graine 0, luminance cible $0{,}7$. Chaque gain est calculé par paire relativement à BASE, puis moyenné sur les prompts. Les coefficients sont communs aux méthodes. Ces observations ne proviennent pas du jeu d'évaluation final.}
+\label{tab:calibrationh100}
+\end{table}
+
+Parmi les trois coefficients testés, $\beta=115{,}46$ fournit le gain moyen le plus élevé pour chacune des méthodes guidées. À cette valeur, les cinq prompts améliorent leur récompense relativement à BASE pour COV, FULL et LiDAR. Ce coefficient a donc été retenu et fixé avant l'examen des résultats held-out. Il s'agit du meilleur coefficient testé selon la récompense sur ce petit ensemble DEV, et non d'un optimum global ou d'un réglage optimal par méthode. La progression des gains de COV reste faible à cette échelle, alors que celle de FULL est plus marquée. La réponse de LiDAR n'est pas supposée linéaire en $\beta$, qui intervient dans les poids softmax récompensés. Ni CLIPScore ni HPSv2 n'ont été utilisés pour sélectionner le coefficient.
+
+Un réglage propre à chaque méthode répondrait à une autre question : le compromis obtenu après optimisation de ses hyperparamètres. Il reste une extension utile, mais il ne remplace pas la comparaison à cible commune. Entre récompenses différentes, un coefficient différent peut être nécessaire, puisque leurs échelles ne sont pas identiques.
+
+\subsection{Appariement et mesures de performance}\label{sec:metrics}
+Pour chaque prompt et graine, toutes les méthodes utilisent le même tenseur initial, les mêmes embeddings, le même modèle et la même grille DDIM. La différence de récompense est calculée par paire :
+\begin{equation}
+\Delta R_{p,s}^{m}=R(y_{p,s}^{m})-R(y_{p,s}^{\mathrm{BASE}}).
+\end{equation}
+Une valeur positive indique un rapprochement de la cible pour la récompense considérée. La récompense de l'image flottante est conservée. L'évaluation finale utilise aussi la récompense recalculée depuis le PNG, afin d'appliquer le même chemin à toutes les méthodes. Les deux valeurs peuvent différer du fait de la quantification en huit bits.
+
+Les statistiques rapportées sont la récompense moyenne, l'écart-type descriptif, le gain apparié moyen et la proportion de paires améliorées. L'écart-type sur les 32 images utilise le dénominateur $n-1$, avec $n=32$. Il décrit la dispersion observée et n'est pas un intervalle de confiance. Les quatre graines d'un même prompt ne sont pas assimilées à quatre prompts indépendants. Pour étudier les différences entre prompts, le gain est d'abord moyenné sur les graines :
+\begin{equation}
+\overline{\Delta R}_p^{m}=\frac14\sum_{s=0}^{3}\Delta R_{p,s}^{m}.
+\end{equation}
+La distribution de ces huit moyennes donne une lecture complémentaire de l'effet. La banque LiDAR étant partagée entre les graines d'un prompt, cette agrégation respecte aussi une dépendance introduite par la méthode.
+
+CLIPScore et HPSv2 sont utilisés comme métriques indépendantes de la guidance \cite{clipscore,hps}. CLIPScore utilise CLIP ViT-B/32, le préfixe textuel \og A photo depicts \fg{} et la convention $2{,}5\max(\cos,0)$. HPSv2 utilise le checkpoint v2.0 et la similarité normalisée brute, sans multiplication par 100. Les versions et prétraitements sont fixés dans le code. Leur exécution avec les poids préentraînés a été validée sur les quatre PNG du test fonctionnel H100, dans un job d'évaluation distinct. Les valeurs du test figurent en annexe~\ref{sec:smoke-annex}. Ces deux métriques sont également disponibles pour les 128 PNG de la campagne held-out. Elles n'ont pas servi à sélectionner le coefficient de guidage.
+
+CLIPScore estime l'alignement texte--image, tandis que HPSv2 reflète des préférences apprises. Nous les utilisons pour examiner les effets du contrôle de luminance sur des critères qui ne sont pas optimisés par la guidance.
+
+\subsection{Banques LiDAR, temps et mémoire}
+La configuration opérationnelle contient 16 candidats par prompt, générés en cinq pas DDIM avec les graines 10000 à 10015. La banque est construite séquentiellement, puis partagée entre les quatre graines finales. Elle ajoute $8\times16=128$ générations courtes aux 128 images finales. Les candidats ne sont pas comptés comme des observations supplémentaires du benchmark.
+
+Le temps de génération principal comprend le sampler et le décodage final, avec synchronisation CUDA. Le chargement des poids, l'encodage du prompt, les écritures disque et l'évaluation indépendante sont distingués de cette mesure. Les pilotes avec traces CPU ne constituent pas un benchmark de débit optimisé. Le pic de mémoire allouée inclut les poids résidents et les activations temporaires.
+
+Pour LiDAR, le coût de construction et de scoring de banque doit être ajouté. Avec quatre générations partageant une banque, le coût amorti est
+\begin{equation}\label{eq:cost}
+T_{\mathrm{LiDAR,amorti}}=
+\frac{T_{\mathrm{banque}}+T_{\mathrm{scoring}}+\sum_{s=0}^{3}T_{\mathrm{trajectoire},s}}{4}.
+\end{equation}
+Le coût isolé d'une image comprend la banque entière. Les deux points de vue sont rapportés. Une comparaison à 50 pas ne correspond pas à un budget de calcul égal : COV et FULL ajoutent des décodages et des rétropropagations, tandis que LiDAR paie la banque en amont.
+
+\subsection{Sauvegardes, reprise et reproductibilité}
+Le lanceur est conçu pour sauvegarder les images, latents, configurations, diagnostics et empreintes nécessaires à la reprise. Avant de réutiliser un résultat, il vérifie ses fichiers et ses dépendances de banque. Les sorties sont enregistrées sur le volume persistant Northflank partagé entre génération et évaluation, sous \code{/data}.
+
+Pour la campagne H100, nous avons récupéré le CSV d'évaluation et contrôlé ses 128 observations. Les 32 couples prompt--graine sont complets pour les quatre méthodes ; aucun couple n'est exclu. La persistance du CSV entre jobs a été vérifiée lors du test d'intégration. Les PNG et les manifestes des environnements exécutés restent à rattacher à l'archive locale pour compléter la provenance. L'annexe B conserve les chemins, les révisions de code et les commandes de reproduction.
+
+\section{Résultats et analyse}
+\subsection{Portée des résultats disponibles}
+Les sections suivantes distinguent les pilotes T4 archivés, le test fonctionnel H100 et la campagne finale held-out. Hors validation initiale de BASE sur cinq prompts, les pilotes T4 concernent le prompt \og a photo of a sandwich\fg{}, la graine 0 et une cible de luminance de $0{,}7$. Leurs récompenses sont calculées sur les images flottantes sauvegardées. Les tableaux H100 utilisent des récompenses recalculées sur PNG. Les gains de calibration présentés en section 4.3 proviennent de cinq prompts DEV et de récompenses tensorielles. Aucun de ces ensembles n'est regroupé avec un autre dans une même moyenne.
+
+Les pilotes T4 ont servi à choisir les expériences suivantes : le diagnostic COV/FULL porte sur l'amplitude des corrections, et les ablations LiDAR séparent nombre de candidats et nombre de pas de banque. Les résultats H100 du test fonctionnel et de la calibration proviennent du relevé transmis. Les statistiques finales sont recalculées à partir du CSV d'évaluation.
+
+\subsection{COV : une réponse à l'intensité sur le pilote}
+Le premier pilote COV a utilisé une grille dimensionnée à partir des normes de correction sur BASE. La luminance se rapproche de la cible lorsque $\beta$ augmente dans la plage testée (tableau~\ref{tab:covinitial}). Le plus grand coefficient réduit l'erreur absolue d'environ 60\,\%. Sur cette image, l'écart à la luminance cible passe de $0{,}2678$ à $0{,}1069$.
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+Méthode & $\beta$ & Luminance & Récompense & Temps (s)\\
+\midrule
+BASE & 0 & 0,432205 & $-0,071714$ & 7,27\\
+COV & 1\,181,045 & 0,454212 & $-0,060412$ & 95,10\\
+COV & 3\,543,135 & 0,493739 & $-0,042544$ & 94,86\\
+COV & 11\,810,449 & 0,593065 & $-0,011435$ & 94,85\\
+\bottomrule
+\end{tabular}
+\caption{Premier pilote COV sur T4. Un prompt et une graine. Les durées incluent les diagnostics, les traces et le décodage. La calibration, d'environ 5,71 s, est séparée.}
+\label{tab:covinitial}
+\end{table}
+
+Les trois trajectoires positives sont finies. La mémoire allouée après les pas reste constante dans les journaux, sans accumulation observée. Le pic alloué atteint environ $7{,}92$ Gio pour COV, contre $2{,}95$ Gio pour BASE. Les corrections relatives maximales du bruit sont respectivement de $1{,}02$\,\%, $2{,}71$\,\% et $5{,}73$\,\%. Ces valeurs diffèrent des niveaux visés sur les sondes, car la guidance modifie la trajectoire elle-même.
+
+Le contrôle de luminance affecte aussi le contenu local. Au coefficient le plus élevé, la proportion de composantes RGB à la borne supérieure augmente d'environ $0{,}44$\,\% à $3{,}03$\,\%. Les noirs saturés diminuent simultanément. Un diagnostic global de saturation doit donc distinguer les deux bornes. La récompense seule ne permet pas de déterminer si les textures ou les contrastes sont mieux préservés.
+
+\subsection{COV et FULL : coefficient commun et diagnostic d'amplitude}
+Le pilote suivant a fixé $\beta=66{,}3703$ pour COV et FULL. FULL rapproche davantage la luminance de la cible sur cette image (tableau~\ref{tab:full}). Son coût temporel et son pic mémoire sont plus élevés. Le contrôle préalable a confirmé la propagation du gradient dans les deux branches CFG. La trajectoire complète a terminé sans checkpointing et sans accumulation de graphe observée.
+\begin{table}[htbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Méthode & $\beta$ & Luminance & Récompense & Temps (s) & Pic (Gio)\\
+\midrule
+BASE & 0 & 0,432205 & $-0,071714$ & 8,46 & 2,95\\
+COV commun & 66,3703 & 0,433546 & $-0,070998$ & 101,45 & 7,92\\
+FULL commun & 66,3703 & 0,456291 & $-0,059394$ & 120,86 & 9,39\\
+COV calibré & 1\,181,0449 & 0,454212 & $-0,060412$ & 101,41 & 7,92\\
+\bottomrule
+\end{tabular}
+\caption{Pilote commun COV/FULL sur T4. \og COV calibré\fg{} utilise un coefficient distinct pour une amplitude maximale comparable sur trois états BASE. Il ne vise donc pas la même cible nominale que les lignes au coefficient commun.}
+\label{tab:full}
+\end{table}
+
+Une seconde comparaison a donné à COV un coefficient choisi pour égaler le niveau maximal de correction sur les trois sondes BASE. La luminance obtenue, $0{,}454212$, devient proche de celle de FULL. Cette observation suggère que l'amplitude explique une partie de l'écart au coefficient commun. Elle n'établit pas que les directions de guidance sont équivalentes. L'égalité d'amplitude sur trois états ne s'étend pas à toutes les étapes guidées.
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.24\linewidth}\centering\reportimage{\linewidth}{figures/BASE.png}\\{\small BASE}\end{minipage}\hfill
+\begin{minipage}{0.24\linewidth}\centering\reportimage{\linewidth}{figures/COV_shared.png}\\{\small COV commun}\end{minipage}\hfill
+\begin{minipage}{0.24\linewidth}\centering\reportimage{\linewidth}{figures/FULL_shared.png}\\{\small FULL commun}\end{minipage}\hfill
+\begin{minipage}{0.24\linewidth}\centering\reportimage{\linewidth}{figures/COV_matched.png}\\{\small COV calibré}\end{minipage}
+\caption{Images du pilote COV/FULL. La dernière colonne change le coefficient de COV. Les quatre images correspondent au même prompt et à la même graine de développement.}
+\label{fig:full}
+\end{figure}
+
+Les coefficients initiaux de COV n'ont donc pas été transférés automatiquement à FULL. Le coefficient commun a été redimensionné après mesure des deux gradients. Cette étape était nécessaire pour éviter de confondre une méthode correcte avec un réglage inadapté à son amplitude.
+
+\subsection{LiDAR : le rôle de la banque et de la concentration}
+Le premier pilote LiDAR utilisait huit candidats produits en cinq pas DDIM. Au coefficient commun, sa récompense était légèrement inférieure à celle de BASE. Cette baisse n'a pas invalidé l'implémentation : les identités, les poids et les corrections satisfaisaient les contrôles. Elle a motivé l'étude de la banque.
+
+Deux ablations ont été réalisées séparément à $\beta=66{,}3703$. La première conserve les huit candidats initiaux et en ajoute huit. La seconde régénère les huit mêmes graines avec vingt pas DDIM. Les grilles temporelles diffèrent : cinq pas commencent à $t=801$, contre $t=951$ pour vingt pas. Le second essai ne consiste donc pas à prolonger simplement les mêmes trajectoires.
+\begin{table}[htbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\toprule
+Banque & Luminance & Récompense & Réduction de $|\bar\ell-0,7|$ & Coût complet (s)\\
+\midrule
+$8\times5$ & 0,432017 & $-0,0718150$ & $-0,070$\,\% & 16,97\\
+$16\times5$ & 0,434458 & $-0,0705127$ & $0,841$\,\% & 30,23\\
+$8\times20$ & 0,433736 & $-0,0708963$ & $0,572$\,\% & 40,19\\
+\bottomrule
+\end{tabular}
+\caption{Ablations LiDAR sur le même prompt et la même graine. Le coût complet comprend la banque, son décodage/scoring et une génération finale. La réduction d'erreur est mesurée par rapport à BASE. Les valeurs de référence proviennent du pilote historique.}
+\label{tab:lidar}
+\end{table}
+
+La banque $16\times5$ apporte le meilleur compromis observé parmi ces trois configurations. Son coût complet vaut $30{,}23$ s, même si le calcul supplémentaire effectivement lancé n'a coûté que $21{,}13$ s grâce à la réutilisation des huit candidats. Retirer leur coût historique aurait favorisé artificiellement cette ablation. Les pics alloués des nouveaux essais sont proches de $2{,}95$ Gio. Ces mesures de sessions différentes ne sont pas un benchmark de débit répété.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{lrrr}
+\toprule
+Diagnostic sur 50 pas & $8\times5$ & $16\times5$ & $8\times20$\\
+\midrule
+Pas avec $\ESS(w^R)<1{,}01$ & 42 & 26 & 49\\
+Correction du bruit exactement nulle & 10 & 18 & 41\\
+Correction relative maximale & 2,93\,\% & 11,99\,\% & 0,72\,\%\\
+\bottomrule
+\end{tabular}
+\caption{Diagnostics de LiDAR. La correction relative compare la modification du bruit prédit à la norme du bruit CFG. Elle ne mesure pas directement le déplacement relatif du latent.}
+\label{tab:ess}
+\end{table}
+
+L'ajout de candidats réduit la concentration des poids sur une partie de la trajectoire. Il ne la supprime pas. Le nombre de corrections exactement nulles augmente même entre $8\times5$ et $16\times5$. L'ESS seule ne décrit donc pas toute l'activité du guidage.
+
+Le résultat $8\times20$ est instructif. Sa banque contient des candidats de meilleure récompense, mais la guidance devient presque nulle après les premières étapes. La raison apparaît dans \eqref{eq:lidar} : lorsque $w$ et $w^R$ se concentrent sur le même candidat, leur différence tend vers zéro. La meilleure image de la banque ne reçoit pas nécessairement un poids important, car la compatibilité avec $z_t$ intervient aussi. Améliorer les scores de banque ne garantit donc pas une correction plus utile.
+
+\begin{figure}[htbp]
+\centering\reportimage{0.96\linewidth}{figures/lidar_diagnostics.png}
+\caption{Évolution des poids et des corrections pendant les trois trajectoires LiDAR. Chaque courbe suit sa propre trajectoire guidée. Le panneau inférieur conserve les corrections nulles et utilise une échelle linéaire au voisinage de zéro, puis logarithmique. Source : diagnostics archivés du pilote et des ablations T4.}
+\label{fig:lidardiag}
+\end{figure}
+
+Le pic de correction de $11{,}99$\,\% pour $16\times5$ apparaît au temps $t=401$. Deux candidats y sont en concurrence. La récompense modifie suffisamment leur poids relatif pour produire une correction ponctuelle. Cet événement ne prouve pas une instabilité, mais montre qu'une calibration sur quelques états ne borne pas tous les pas.
+
+\begin{figure}[htbp]
+\centering\reportimage{\linewidth}{figures/lidar_images.png}
+\caption{De gauche à droite : BASE, LiDAR $8\times5$ et LiDAR $16\times5$, au coefficient commun. Les changements de composition sont visibles malgré un faible gain de luminance. Ces images proviennent du pilote T4.}
+\label{fig:lidarimages}
+\end{figure}
+
+Nous avons retenu la banque $16\times5$ pour la campagne H100 : elle améliore davantage la récompense que $8\times20$ sur le pilote, pour un coût complet plus faible.
+
+\clearpage
+\subsection{H100 : comparaison sur huit prompts}\label{sec:h100}
+Un test H100 sur un prompt DEV a produit les quatre images et validé le calcul indépendant de leur récompense, de CLIPScore et de HPSv2 sur les PNG sauvegardés (annexe~\ref{sec:smoke-annex}). Nous avons ensuite lancé la campagne held-out à $\beta=115{,}46$ : huit prompts, quatre graines et quatre méthodes, soit 128 images. Les 32 couples prompt--graine sont complets. Les moyennes suivantes excluent le test initial et la calibration DEV.
+
+La récompense de luminance est maximale en zéro. Le tableau~\ref{tab:h100reward} montre que FULL améliore cette récompense dans les 32 comparaisons appariées. Son gain moyen vaut $0{,}03112$. COV améliore également toutes les paires, mais avec un gain moyen de $0{,}00102$. LiDAR obtient un gain moyen de $0{,}00163$ et améliore 27 paires sur 32. Sa moyenne positive masque donc cinq baisses locales.
+
+\begin{table}[!htb]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Méthode & Images & \shortstack{Récompense PNG\\moyenne $\pm$ écart-type} & \shortstack{Gain moyen\\vs BASE} & \shortstack{Paires\\améliorées}\\
+\midrule
+BASE & 32 & $-0{,}05856$ $\pm$ $0{,}02389$ & référence & ---\\
+COV & 32 & $-0{,}05754$ $\pm$ $0{,}02329$ & $+0{,}00102$ & 32/32\\
+FULL & 32 & $-0{,}02744$ $\pm$ $0{,}01131$ & $+0{,}03112$ & 32/32\\
+LiDAR & 32 & $-0{,}05693$ $\pm$ $0{,}02311$ & $+0{,}00163$ & 27/32\\
+\bottomrule
+\end{tabular}
+\caption{Campagne principale H100 : huit prompts held-out et quatre graines, soit 32 images par méthode. Gains appariés et récompenses recalculées sur PNG. L'écart-type utilise le dénominateur $n-1$ ; il décrit les 32 observations et ne mesure pas une incertitude sur 32 prompts indépendants.}
+\label{tab:h100reward}
+\end{table}
+
+FULL gagne en récompense de luminance, mais ses moyennes CLIPScore et HPSv2 baissent respectivement de $0{,}00906$ et de $0{,}00218$ par rapport à BASE (tableau~\ref{tab:h100quality}). Pour chacune de ces métriques, le gain moyen sur les quatre graines est négatif pour cinq prompts et positif pour les trois autres. COV et LiDAR restent proches de BASE, avec de faibles écarts moyens positifs.
+
+\begin{table}[!htb]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+Méthode & \shortstack{CLIPScore\\moyen} & \shortstack{$\Delta$ CLIPScore\\vs BASE} & \shortstack{HPSv2\\moyen} & \shortstack{$\Delta$ HPSv2\\vs BASE}\\
+\midrule
+BASE & $0{,}77716$ & référence & $0{,}28175$ & référence\\
+COV & $0{,}77801$ & $+0{,}00086$ & $0{,}28185$ & $+0{,}00009$\\
+FULL & $0{,}76810$ & $-0{,}00906$ & $0{,}27957$ & $-0{,}00218$\\
+LiDAR & $0{,}77953$ & $+0{,}00238$ & $0{,}28283$ & $+0{,}00108$\\
+\bottomrule
+\end{tabular}
+\caption{Métriques indépendantes sur les mêmes 128 PNG. Les différences sont calculées avant arrondi. CLIPScore et HPSv2 n'interviennent ni dans la guidance de luminance ni dans la sélection de $\beta$.}
+\label{tab:h100quality}
+\end{table}
+
+Le coût de trajectoire moyen passe de $1{,}91$ s pour BASE à $24{,}34$ s pour COV et $25{,}99$ s pour FULL (tableau~\ref{tab:h100cost}). L'approximation isotrope réduit ici le pic alloué de $9{,}39$ à $7{,}92$ Gio par rapport à FULL, mais laisse un coût proche en temps. Les décodages et les rétropropagations répétés restent nécessaires dans COV.
+
+Pour LiDAR, les huit banques distinctes coûtent ensemble $36{,}82$ s, génération et scoring inclus. Les métadonnées répétées sur quatre graines sont comptées une seule fois par banque. Le coût moyen de préparation vaut ainsi $4{,}60$ s par prompt, soit $1{,}15$ s par image après amortissement. Ajouté aux $2{,}02$ s de trajectoire, il donne $3{,}17$ s par image. Une image isolée qui supporterait la préparation entière coûterait en moyenne $6{,}62$ s dans ces mesures. Les seuls $2{,}02$ s de trajectoire ne suffisent donc pas pour comparer le coût de LiDAR.
+
+\begin{table}[!htb]
+\centering\small
+\begin{tabular}{lrrr}
+\toprule
+Méthode & \shortstack{Trajectoire\\(s/image)} & \shortstack{Avec banque amortie\\(s/image)} & \shortstack{Maximum des pics\\alloués (Gio)}\\
+\midrule
+BASE & $1{,}91$ & $1{,}91$ & $2{,}98$\\
+COV & $24{,}34$ & $24{,}34$ & $7{,}92$\\
+FULL & $25{,}99$ & $25{,}99$ & $9{,}39$\\
+LiDAR & $2{,}02$ & $3{,}17$ & $2{,}98$\\
+\bottomrule
+\end{tabular}
+\caption{Coûts mesurés sur H100. Les durées moyennes incluent le sampler et le décodage final ; elles excluent le chargement, l'encodage du texte, les écritures et l'évaluation indépendante. Le coût de banque LiDAR est réparti sur quatre graines. La mémoire est le maximum des pics PyTorch alloués des 32 trajectoires, et non l'occupation totale du processus. Le pic de construction des banques n'est pas renseigné dans le CSV.}
+\label{tab:h100cost}
+\end{table}
+
+L'analyse par prompt nuance la moyenne globale (tableau~\ref{tab:h100prompts}). FULL et COV ont un gain moyen positif pour chacun des huit prompts. Pour LiDAR, sept moyennes sont positives. Le prompt décrivant un clavier jaune et un évier noir constitue l'exception, avec un gain moyen de $-0{,}00044$. Le gain moyen le plus élevé de FULL, $0{,}05579$, est observé pour la fourchette et le couteau.
+
+\begin{table}[!htb]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.51\linewidth}rrr}
+\toprule
+Prompt (index) & Gain COV & Gain FULL & Gain LiDAR\\
+\midrule
+0 --- a photo of a teddy bear & $+0{,}00090$ & $+0{,}02749$ & $+0{,}00104$\\
+1 --- a photo of a computer keyboard and a microwave & $+0{,}00051$ & $+0{,}02160$ & $+0{,}00388$\\
+2 --- a photo of two toothbrushs & $+0{,}00075$ & $+0{,}02934$ & $+0{,}00278$\\
+3 --- a photo of a purple backpack & $+0{,}00097$ & $+0{,}03060$ & $+0{,}00079$\\
+4 --- a photo of a zebra below a broccoli & $+0{,}00122$ & $+0{,}02861$ & $+0{,}00245$\\
+5 --- a photo of a yellow computer keyboard\newline and a black sink & $+0{,}00076$ & $+0{,}02382$ & $-0{,}00044$\\
+6 --- a photo of a potted plant & $+0{,}00137$ & $+0{,}03174$ & $+0{,}00022$\\
+7 --- a photo of a fork and a knife & $+0{,}00170$ & $+0{,}05579$ & $+0{,}00228$\\
+\bottomrule
+\end{tabular}
+\caption{Gain de récompense PNG relativement à BASE, moyenné sur les quatre graines de chaque prompt. Les libellés reproduisent les métadonnées, y compris l'orthographe de \og toothbrushs\fg{}. }
+\label{tab:h100prompts}
+\end{table}
+
+Les métriques H100 ont été calculées à distance sur les PNG sauvegardés. Leur transfert local n'a pas abouti dans le temps disponible ; nous n'avons donc pas examiné les planches appariées de cette campagne. Les panneaux T4 présentés plus haut ont, eux, été inspectés. La baisse des scores appris de FULL doit être confrontée aux images avant d'être interprétée comme une perte perceptuelle.
+
+
+
+\subsection{Résultats défavorables et hypothèses explicatives}\label{sec:discussion-echecs}
+Trois résultats demandent une explication : les cinq baisses de récompense de LiDAR, le faible gain de COV malgré son coût, et le recul moyen des scores appris avec FULL.
+
+\subsubsection*{LiDAR : cinq baisses locales}
+LiDAR améliore 27 des 32 paires, avec un gain moyen de $0{,}00163$. Le prompt \og a photo of a yellow computer keyboard and a black sink\fg{} conserve un gain moyen négatif après agrégation des quatre graines ($-0{,}00044$). La banque est une première piste explicative.
+
+La correction dépend de l'écart entre $w^R$ et $w$. Lorsque les deux distributions concentrent leur masse sur le même candidat, cet écart devient presque nul. Sur le pilote T4, la banque $8\times20$ contenait des candidats de meilleure récompense, mais 41 des 50 corrections du bruit étaient exactement nulles. Cette observation explique pourquoi améliorer les candidats ne suffit pas à rendre la guidance active. Elle ne relie pas encore ce mécanisme aux cinq baisses H100.
+
+Il faudrait examiner, pour ces cinq paires, les trajectoires de $\ESS(w)$ et $\ESS(w^R)$, les candidats dominants et les normes de correction. Ces diagnostics ne figurent pas dans le CSV récupéré. Une ablation sur DEV ferait ensuite varier séparément le nombre de candidats et les pas de génération de banque pour mesurer leur effet.
+
+\subsubsection*{COV : un faible gain malgré le coût}
+COV améliore toutes les paires, mais son gain moyen de $0{,}00102$ reste faible face aux $0{,}03112$ de FULL. L'économie se situe surtout en mémoire : le pic passe de $9{,}39$ à $7{,}92$ Gio, alors que le temps passe seulement de $25{,}99$ à $24{,}34$ s par image. Éviter la rétropropagation dans le U-Net ne supprime pas les décodages VAE et les gradients de récompense répétés.
+
+Deux explications du faible gain restent à départager. L'approximation isotrope peut orienter la correction dans une direction moins efficace que le Jacobien complet. Elle peut aussi produire une amplitude trop faible au coefficient commun, puisque $\tau^2=1$ donne $\kappa_t=\alpha_t$. Sur le pilote T4, augmenter le coefficient de COV pour approcher l'amplitude de FULL sur trois états rapprochait leurs récompenses. Ce résultat soutient l'hypothèse d'amplitude sur ce cas ; les directions n'ont pas été comparées.
+
+Le test suivant consisterait à mesurer les normes et les cosinus entre corrections sur les mêmes latents DEV, puis à comparer des générations à amplitude contrôlée. Un réglage séparé de $\beta$ par méthode compléterait cette étude, avec une cible différente de la comparaison actuelle. Un profilage du U-Net, du VAE et des rétropropagations permettrait par ailleurs d'identifier le coût que l'approximation COV évite réellement.
+
+\subsubsection*{FULL : luminance et scores appris}
+FULL améliore la récompense de luminance sur les 32 paires. Les autres métriques réagissent de façon moins uniforme : CLIPScore baisse dans 21 paires, tandis que HPSv2 augmente dans 17 et baisse dans 15. Le cas \og a photo of a zebra below a broccoli\fg{}, graine 0, produit une baisse de CLIPScore de $0{,}17852$ et contribue fortement à la moyenne négative.
+
+La récompense optimisée porte uniquement sur la luminance globale. Elle n'impose pas explicitement de conserver les objets, leurs relations ou les contrastes. Notre hypothèse est que certaines corrections de luminance modifient aussi des caractéristiques utilisées par les métriques apprises. Le coefficient a été choisi sur DEV selon la récompense, sans optimisation de CLIPScore ou HPSv2.
+
+Pour tester cette hypothèse, nous examinerions les quatre images des paires où CLIPScore baisse le plus, en recherchant des changements de contenu et de contraste. Une variation de $\beta$ sur DEV mesurerait ensuite la réponse conjointe de la luminance et des deux scores. Ces expériences permettraient de distinguer un changement visuel du contenu d'une sensibilité des métriques à l'apparence.
+
+\subsubsection*{ImageReward : l'échec du diagnostic initial}
+Le premier test de différence finie d'ImageReward échouait avec des pas trop grands. Des perturbations plus petites ont rétabli l'accord local, sans changer le gradient calculé (section 3.3). Nous avons donc corrigé le diagnostic, et non la méthode. Cet épisode a conduit à conserver une grille de pas et à vérifier la convergence locale avant d'interpréter un écart à autograd.
+
+\section{Limites et perspectives}
+\subsection{Une cible théorique commune, sans mesure directe de fidélité}
+Le coefficient commun rend le protocole cohérent avec l'objectif d'approcher une même distribution. Il ne fournit pas une mesure de cette proximité. Une méthode peut augmenter la récompense en concentrant excessivement ses sorties. Une autre peut produire une récompense plus faible tout en préservant davantage de variabilité. Les métriques calculées ne permettent pas de départager directement ces deux comportements au sens d'une divergence à $\pi_\beta$.
+
+Une extension utile serait un problème de faible dimension avec une distribution cible connue analytiquement. Elle permettrait de comparer les moyennes, covariances et écarts distributionnels des échantillons. Ce test compléterait les identités algébriques actuelles. Il ne remplacerait pas l'expérience sur Stable Diffusion, mais aiderait à séparer l'erreur d'approximation de celle du réseau appris.
+
+\subsection{Approximation de Tweedie et hypothèse isotrope}
+FULL remplace l'espérance conditionnelle par une évaluation ponctuelle. Elle ignore donc la dispersion des images propres compatibles avec un latent bruité. Le caractère non linéaire du VAE et de la récompense peut rendre cette substitution imprécise. Un gradient calculé exactement pour cette fonction approchée peut ainsi orienter vers une région peu utile pour la récompense finale.
+
+COV ajoute une hypothèse d'isotropie. Elle ignore les directions de forte incertitude et les dépendances entre coordonnées latentes. Le paramètre $\tau^2=1$ n'a pas été estimé à partir du posterior. Des ablations sur cette échelle ou une approximation diagonale permettraient d'étudier cette limite. Ces variantes changeraient l'approximation du Jacobien définie en section 2.5.
+
+La précision mixte constitue une autre limite. Les petites corrections peuvent être atténuées lors du retour au format FP16. Les diagnostics mesurent l'écart entre la correction prévue et celle réellement appliquée. Une étude FP32 plus coûteuse pourrait quantifier ce phénomène sur quelques états partagés.
+
+\subsection{Concentration et approximation de la banque LiDAR}
+Une petite banque représente imparfaitement une distribution de latents de grande dimension. Les distances gaussiennes peuvent concentrer presque tous les poids sur un candidat. Les générations courtes ajoutent un biais, puisque cinq pas DDIM ne produisent pas des échantillons exacts de la loi de référence. Le partage d'une banque entre les graines réduit le coût, mais introduit une dépendance entre leurs résultats.
+
+Les ablations T4 justifient de séparer taille de banque et précision des générations anticipées dans les prochains essais. Les diagnostics proposés en section~\ref{sec:discussion-echecs} permettraient de relier ces paramètres à l'activité de la guidance. Une modification du noyau de compatibilité changerait l'estimateur et demanderait une dérivation distincte.
+
+\subsection{Récompenses, coefficients et budget expérimental}
+La campagne finale porte sur une propriété globale, la luminance. La symétrie, le masque spatial et ImageReward ont des gradients implémentés et validés localement ; leurs générations guidées restent à comparer. Nous commencerions par une récompense spatiale pour tester si les écarts entre FULL, COV et LiDAR persistent lorsque le critère dépend de la disposition des pixels.
+
+Le coefficient commun $115{,}46$ est le meilleur des trois testés sur cinq prompts DEV et une graine. Une grille plus large permettrait de mesurer la sensibilité des résultats à cette cible. Le réglage d'un coefficient propre à chaque méthode répondrait à une autre question : la performance obtenue après optimisation de ses hyperparamètres.
+
+Les huit prompts limitent la diversité des contenus évalués. Les quatre graines mesurent une variabilité conditionnelle au prompt ; elles n'en font pas 32 prompts indépendants. De plus, la récompense quadratique du CSV ne permet pas de déterminer si une image est plus claire ou plus sombre que $0{,}7$. Il faudrait récupérer les luminances ou les PNG pour isoler les cas où la guidance doit assombrir l'image.
+
+La récupération des PNG est également la prochaine étape pour examiner la conservation du contenu et la diversité visuelle. Les coûts publiés incluent la banque LiDAR amortie, mais pas l'ensemble du réglage, des transferts et de l'évaluation. Le pic mémoire de construction des banques reste à extraire des journaux pour compléter la comparaison des besoins matériels.
+
+\section{Conclusion}
+Nous avons comparé deux façons d'utiliser le gradient de récompense : FULL conserve le Jacobien du débruiteur, tandis que COV le remplace par une approximation isotrope motivée par l'identité de covariance. LiDAR estime la correction à partir d'une banque indépendante. Les pilotes ont montré l'importance de deux choix pratiques : l'amplitude des corrections et la façon dont les poids LiDAR répartissent leur masse entre les candidats.
+
+Sur huit prompts et quatre graines, à $\beta=115{,}46$, FULL obtient le plus grand gain moyen de récompense ($+0{,}03112$) et améliore les 32 paires. Il coûte $25{,}99$ s par image et présente des moyennes CLIPScore et HPSv2 inférieures à BASE. COV réduit le pic mémoire, mais son gain de $0{,}00102$ reste faible pour un temps proche de FULL. LiDAR est le moins coûteux des guidages testés après amortissement de sa banque ($3{,}17$ s par image) ; son gain moyen de $0{,}00163$ comprend cinq baisses locales.
+
+Ces expériences désignent deux priorités : séparer l'effet de l'amplitude et de la direction pour COV, puis relier les échecs LiDAR à la géométrie et aux poids de sa banque. L'inspection des images H100 complétera la lecture des scores appris de FULL. L'évaluation d'autres récompenses permettra ensuite de tester si ces enseignements dépassent le contrôle de luminance.
+
+\clearpage
+\appendix
+\section{Dérivations complémentaires}
+\subsection{Objectif variationnel et distribution exponentiellement pondérée}
+Pour toute loi $q$ absolument continue par rapport à $p$, l'équation \eqref{eq:target} implique
+\begin{equation}
+\KL(q\|\pi_\beta)=\KL(q\|p)-\beta\E_q[r]+\log Z_\beta.
+\end{equation}
+L'objectif \eqref{eq:variational} vaut donc $\beta^{-1}(\log Z_\beta-\KL(q\|\pi_\beta))$. Il est maximal en $q=\pi_\beta$. Cette relation explique le rôle du coefficient commun. Elle ne permet pas de calculer la divergence des images générées lorsque leur densité est inconnue.
+
+\subsection{Identité de covariance}
+Dans le modèle gaussien, on écrit $\mu_t=\E[z_0\mid z_t]$. La dérivée de la log-densité conditionnelle est
+\begin{equation}
+\nabla_{z_t}\log p(z_0\mid z_t)
+=\frac{\alpha_t}{\sigma_t^2}(z_0-\mu_t).
+\end{equation}
+En dérivant la moyenne sous l'intégrale, lorsque cet échange est justifié, on obtient
+\begin{equation}
+J_{\mu_t}=\frac{\alpha_t}{\sigma_t^2}
+\E\bigl[z_0(z_0-\mu_t)^{\mathsf T}\mid z_t\bigr]
+=\frac{\alpha_t}{\sigma_t^2}\Cov(z_0\mid z_t).
+\end{equation}
+Pour un a priori gaussien de covariance $\tau^2I$, la covariance conditionnelle vaut
+$(\tau^{-2}+\alpha_t^2/\sigma_t^2)^{-1}I$. Sa substitution donne \eqref{eq:cov}. Le modèle auxiliaire sert uniquement à approximer le Jacobien ; il ne remplace pas le débruiteur appris dans le calcul de $\mu_t$.
+
+\subsection{Gradient de l'estimateur LiDAR}
+L'estimateur s'écrit comme un rapport de deux sommes :
+\begin{equation}
+\log\widehat h_t
+=\log\sum_i\exp(L_i+\beta r_i)-\log\sum_i\exp(L_i).
+\end{equation}
+Les candidats étant fixes, $\nabla_{z_t}L_i=-(z_t-\alpha_ta_i)/\sigma_t^2$. La dérivée de chaque log-somme-exp produit ses poids softmax. Les termes en $z_t$ s'annulent parce que les deux distributions de poids somment à un. Il reste exactement \eqref{eq:lidar}. Cette dérivation explique les cas nuls $\beta=0$, récompense constante et banque singleton.
+
+\section{Récompenses complémentaires et repères de reproduction}
+\subsection{Fonctions implémentées hors campagne principale}
+En complément de \eqref{eq:luminance}, les fonctions suivantes ont été implémentées :
+\begin{align}
+R_{\mathrm{sym}}(y)&=-\frac{1}{3HW}\lVert y-\operatorname{flip}(y)\rVert_2^2,\\
+R_{\mathrm{mask}}(y)&=-\frac{1}{HW}\lVert\ell(y)-m\rVert_2^2.
+\end{align}
+Le masque testé est un disque central clair sur fond sombre, de rayon égal à un quart du petit côté. ImageReward fournit la quatrième fonction, conditionnée par le prompt. Ces chemins ont été contrôlés sur un latent final de développement. Aucune campagne multi-prompts de guidance par ces trois récompenses n'est revendiquée ici.
+
+\subsection{Correspondance entre équations et fichiers}
+\begin{center}\small
+\begin{tabular}{lp{0.62\linewidth}}
+\toprule
+Fichier & Fonction dans l'expérience\\
+\midrule
+\code{baseline.py} & Modèle, embeddings CFG, bruit initial, DDIM explicite et mesure des coûts.\\
+\code{rewards.py} & Décodage différentiable, récompenses et contrôles des gradients.\\
+\code{guidance_cov.py} & Approximation isotrope de l'équation \eqref{eq:cov}.\\
+\code{guidance_full.py} & Produit vecteur--Jacobien de l'équation \eqref{eq:full}.\\
+\code{guidance_lidar.py} & Poids, ESS et correction de l'équation \eqref{eq:lidar}.\\
+\code{run_experiment.py} & Exécution des tâches, banques, sauvegardes et reprise.\\
+\code{evaluate.py} & Récompenses PNG et métriques indépendantes.\\
+\code{analyze_results.py} & Tableaux descriptifs, gains appariés et comptabilité des coûts.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Les dépendances directes comprennent PyTorch 2.8.0, Diffusers 0.35.1, Transformers 4.51.3, Accelerate 1.10.1 et NumPy 2.1.3. Les versions transitives doivent être conservées dans le manifeste réel de la campagne. La révision SD1.5 utilisée est
+\begin{center}\small\code{451f4fe16113bff5a5d2269ed5ad43b0592e9a14}.\end{center}
+Le code de ce projet personnel est regroupé dans
+\begin{center}\small\url{https://github.com/redaouzz/diffusion-reward-guidance}\end{center}
+ La configuration à huit prompts est conservée sous son nom historique. Cette édition regroupe les sources et les résultats existants ; elle ne correspond pas à une nouvelle campagne. Les SHA et digests réellement exécutés sur H100 restent à confirmer à partir des manifestes distants.
+
+Le dossier \code{validation/} conserve les audits des exports T4 et les contrôles CPU. Le CSV final se trouve dans \code{data/benchmark_evaluation.csv}. Le fichier \code{validation/release_manifest.json} identifie les pièces de cette édition et les vérifications de conservation. Les chemins et noms de projet présents dans certaines métadonnées archivées ont été normalisés ; leurs mesures et leurs empreintes historiques sont conservées. Les trois figures du rapport proviennent des artefacts T4 archivés. Les empreintes des PNG H100 ne sont pas vérifiées dans cette archive.
+
+\subsection{Test d'intégration H100}\label{sec:smoke-annex}
+Avant la calibration, le test H100 a exécuté les quatre méthodes sur le prompt DEV \og a photo of a sandwich\fg{}, graine 0, avec $\beta=66{,}3703$ pour les méthodes guidées. Un job d'évaluation distinct a relu les quatre PNG et calculé leur récompense, CLIPScore et HPSv2. Les générations et l'évaluation ont terminé sans erreur. Le CSV a été retrouvé dans un conteneur ultérieur, confirmant la persistance du résultat entre jobs.
+
+\begin{table}[htbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+Méthode & $\beta$ & \shortstack{Récompense\\PNG $\uparrow$} & \shortstack{CLIPScore\\$\uparrow$} & \shortstack{HPSv2\\$\uparrow$} & \shortstack{Temps\\(s)} & \shortstack{Pic\\(Gio)}\\
+\midrule
+BASE & 0 & $-0{,}071536$ & 0,7357 & 0,2908 & 2,57 & 2,95\\
+COV & 66,3703 & $-0{,}070885$ & 0,7348 & 0,2913 & 24,50 & 7,92\\
+FULL & 66,3703 & $-0{,}059193$ & 0,7406 & 0,2920 & 26,29 & 9,39\\
+LiDAR & 66,3703 & $-0{,}070563$ & 0,7246 & 0,2905 & $2{,}13^{*}$ & 2,98\\
+\bottomrule
+\end{tabular}
+\caption{Test fonctionnel H100 sur un prompt DEV et une graine. Valeurs relevées dans \protect\code{/data/results/h100_smoke/evaluation.csv}. Les récompenses sont recalculées sur PNG. Les temps concernent le sampler et le décodage de l'image finale. $^{*}$Pour LiDAR, la banque ($2{,}96$ s) et son scoring ($1{,}64$ s) sont séparés : leur ajout donne environ $6{,}73$ s à partir des valeurs arrondies. Les pics mémoire sont convertis de Mio en Gio.}
+\label{tab:h100smoke}
+\end{table}
+
+FULL obtient ici la récompense la plus élevée, avec des scores CLIPScore et HPSv2 supérieurs à BASE. Cette observation sur une image de développement est conservée séparément des moyennes held-out. Dans le CSV final, l'écart absolu maximal entre récompense PNG et récompense tensorielle vaut $2{,}5444\times10^{-6}$.
+
+\subsection{Statut des commandes de reproduction}
+Les commandes ci-dessous sont à saisir chacune sur une seule ligne. Elles conservent les chemins rapportés pour les jobs Northflank. Le test initial utilise \code{configs/t4_smoke.json}, dont le nom n'impose pas un GPU T4 :
+\begin{quote}\small\ttfamily
+python run\_experiment.py -{}-config configs/t4\_smoke.json\\
+\hspace*{1em}-{}-output /data/results/h100\_smoke -{}-device cuda
+\end{quote}
+La calibration DEV a utilisé cinq prompts, la graine 0 prévue par le script et trois coefficients communs :
+\begin{quote}\small\ttfamily
+python calibrate\_beta.py\\
+\hspace*{1em}-{}-prompts data/prompts\_50\_dev.txt\\
+\hspace*{1em}-{}-exclude-prompts data/prompts\_50\_heldout.txt\\
+\hspace*{1em}-{}-limit 5 -{}-betas 23.09 66.37033847314085 115.46\\
+\hspace*{1em}-{}-output /data/results/beta\_calibration\_5p3b -{}-device cuda
+\end{quote}
+L'évaluation indépendante du test initial a relu les PNG depuis le volume :
+\begin{quote}\small\ttfamily
+python evaluate.py -{}-input /data/results/h100\_smoke\\
+\hspace*{1em}-{}-metrics reward clip hps -{}-device cuda\\
+\hspace*{1em}-{}-cache-dir /data/cache
+\end{quote}
+\begin{samepage}
+La configuration principale contient huit prompts, quatre graines, la seule récompense de luminance et le coefficient commun fixé. Elle remplace l'usage du template historique à 50 prompts et quatre récompenses :
+\begin{quote}\small\ttfamily
+python run\_experiment.py\\
+\hspace*{1em}-{}-config configs/benchmark\_luminance\_10p.json\\
+\hspace*{1em}-{}-output /data/results/benchmark\_luminance\_8p -{}-device cuda
+\end{quote}
+\end{samepage}
+L'évaluation indépendante de la campagne principale correspond à la commande :
+\begin{quote}\small\ttfamily
+python evaluate.py -{}-input /data/results/benchmark\_luminance\_8p\\
+\hspace*{1em}-{}-metrics reward clip hps -{}-device cuda\\
+\hspace*{1em}-{}-cache-dir /data/cache
+\end{quote}
+Le volume partagé, de 60 Go, est monté sur \code{/data} en mode \code{ReadWriteMany}. Les poids des métriques sont téléchargés à l'exécution dans le cache persistant. La configuration \code{benchmark_luminance_10p.json} conserve un nom historique ; sa limite vaut huit prompts. Le CSV final a été retransmis depuis le shell Northflank. Il établit la présence des 128 résultats évalués attendus, mais pas la durée murale complète, le nombre de reprises ou la facture du job.
+
+\clearpage
+\begin{thebibliography}{99}
+\bibitem{ddim} J. Song, C. Meng et S. Ermon. \emph{Denoising Diffusion Implicit Models}. ICLR, 2021. \url{https://arxiv.org/abs/2010.02502}.
+\bibitem{ldm} R. Rombach et al. \emph{High-Resolution Image Synthesis with Latent Diffusion Models}. CVPR, 2022. \url{https://arxiv.org/abs/2112.10752}.
+\bibitem{cfg} J. Ho et T. Salimans. \emph{Classifier-Free Diffusion Guidance}. 2022. \url{https://arxiv.org/abs/2207.12598}.
+\bibitem{efron} B. Efron. \emph{Tweedie's Formula and Selection Bias}. Journal of the American Statistical Association, 106(496), 2011, p. 1602--1614. \url{https://doi.org/10.1198/jasa.2011.tm11181}.
+\bibitem{uehara} M. Uehara et al. \emph{Inference-Time Alignment in Diffusion Models with Reward-Guided Generation: Tutorial and Review}. 2025. \url{https://arxiv.org/abs/2501.09685}.
+\bibitem{dps} H. Chung et al. \emph{Diffusion Posterior Sampling for General Noisy Inverse Problems}. ICLR, 2023. \url{https://arxiv.org/abs/2209.14687}.
+\bibitem{universal} A. Bansal et al. \emph{Universal Guidance for Diffusion Models}. CVPR Workshops, 2023. \url{https://arxiv.org/abs/2302.07121}.
+\bibitem{lidar} Y. Kim et al. \emph{Lookahead Sample Reward Guidance for Test-Time Scaling of Diffusion Models}. ICML, 2026. Version arXiv v2. \url{https://arxiv.org/abs/2602.03211v2}.
+\bibitem{imagereward} J. Xu et al. \emph{ImageReward: Learning and Evaluating Human Preferences for Text-to-Image Generation}. NeurIPS, 2023. \url{https://arxiv.org/abs/2304.05977}.
+\bibitem{clipscore} J. Hessel et al. \emph{CLIPScore: A Reference-free Evaluation Metric for Image Captioning}. EMNLP, 2021. \url{https://arxiv.org/abs/2104.08718}.
+\bibitem{hps} X. Wu et al. \emph{Human Preference Score v2: A Solid Benchmark for Evaluating Human Preferences of Text-to-Image Synthesis}. 2023. \url{https://arxiv.org/abs/2306.09341}.
+\end{thebibliography}
+\end{document}

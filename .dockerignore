@@ -1,0 +1,22 @@
+.git
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+.venv
+venv
+runs
+results
+cache
+.cache
+*.zip
+*.tar
+*.tar.gz
+*.pt
+*.bin
+*.safetensors
+notebooks
+validation
+data/full_pilot_reference
+# Report and Colab documentation are not needed inside runtime images.
+docs/

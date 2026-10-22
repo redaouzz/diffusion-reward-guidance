@@ -1,0 +1,188 @@
+{
+  "archive_sha256": "233e9745d77501cf7db44411f4d4b208d968e381e3a263fa039d0a0661f4093a",
+  "executed_notebook_sha256": "b4597a414b0ddf2abd760ff626fc5262e772515de3bfc8ab7d6e064683a2d72f",
+  "recomputed_on": "CPU, from saved tensors; no pretrained model forward or backward rerun",
+  "rewards": {
+    "luminance": {
+      "reward": -0.07171405106782913,
+      "gradient_l2": 0.0022187260910868645,
+      "gradient_norm_cpu": 0.0022187260910868645,
+      "consecutive_passes": 3,
+      "seconds_diagnostic": 4.859131953000087,
+      "peak_allocated_gib": 3.405150890350342,
+      "peak_reserved_gib": 3.87890625,
+      "directional_checks": [
+        {
+          "step": 0.01,
+          "relative_error_pct": 0.036140952232233126,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.003,
+          "relative_error_pct": 0.013753989951315049,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.001,
+          "relative_error_pct": 0.09818082145319762,
+          "matches_and_ascends": true
+        }
+      ]
+    },
+    "symmetry": {
+      "reward": -0.1861448585987091,
+      "gradient_l2": 0.008679365739226341,
+      "gradient_norm_cpu": 0.008679363876581192,
+      "consecutive_passes": 3,
+      "seconds_diagnostic": 4.742690825000068,
+      "peak_allocated_gib": 3.436400890350342,
+      "peak_reserved_gib": 3.908203125,
+      "directional_checks": [
+        {
+          "step": 0.01,
+          "relative_error_pct": 0.0021246007521069643,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.003,
+          "relative_error_pct": 0.03507379625449225,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.001,
+          "relative_error_pct": 0.006459644710954393,
+          "matches_and_ascends": true
+        }
+      ]
+    },
+    "spatial_mask": {
+      "reward": -0.2544693946838379,
+      "gradient_l2": 0.0049118101596832275,
+      "gradient_norm_cpu": 0.00491180969402194,
+      "consecutive_passes": 3,
+      "seconds_diagnostic": 4.753388704000031,
+      "peak_allocated_gib": 3.436400890350342,
+      "peak_reserved_gib": 3.912109375,
+      "directional_checks": [
+        {
+          "step": 0.01,
+          "relative_error_pct": 0.007887727303068637,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.003,
+          "relative_error_pct": 0.01233721449966918,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.001,
+          "relative_error_pct": 0.18991220352763127,
+          "matches_and_ascends": true
+        }
+      ]
+    },
+    "imagereward": {
+      "reward": -0.014720250852406025,
+      "gradient_l2": 11.230340957641602,
+      "gradient_norm_cpu": 11.230334281921387,
+      "consecutive_passes": 4,
+      "seconds_diagnostic": 8.48188967599981,
+      "peak_allocated_gib": 5.108007431030273,
+      "peak_reserved_gib": 5.6640625,
+      "directional_checks": [
+        {
+          "step": 0.001,
+          "relative_error_pct": 62.43056379170967,
+          "matches_and_ascends": false
+        },
+        {
+          "step": 0.0003,
+          "relative_error_pct": 8.159729328328535,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 0.0001,
+          "relative_error_pct": 0.9499800269466396,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 3e-05,
+          "relative_error_pct": 0.3058989462006445,
+          "matches_and_ascends": true
+        },
+        {
+          "step": 1e-05,
+          "relative_error_pct": 2.6604765734426605,
+          "matches_and_ascends": true
+        }
+      ]
+    }
+  },
+  "checks": {
+    "baseline_final_latents_equal": true,
+    "baseline_png_equal": true,
+    "saved_latents_match_reward_input": true,
+    "saved_image_matches_png": true,
+    "mask_matches_definition": true,
+    "reported_intermediate_states_equal": 50,
+    "summary_matches_individual_reports": true,
+    "analytic_rewards_recomputed": true,
+    "gradient_tensors_match_norms_and_shapes": true,
+    "fd_claims_recomputed": true,
+    "old_failed_report_preserved": true,
+    "corrected_source_matches_project_and_package": true,
+    "old_new_imagereward_gradients_exactly_equal": true,
+    "baseline_source_hashes_match": true,
+    "notebook_reports_match_archive": true,
+    "notebook_execution_order_consistent": true,
+    "original_notebook_error_is_followed_by_corrected_pass": true
+  },
+  "mean_luminance": 0.4322052299976349,
+  "fp16_vs_fp32_image_max_error": 0.005952209234237671,
+  "imagereward_api": {
+    "scores_finite": true,
+    "official_pil_score": -0.024895351380109787,
+    "score_gard_same_input": -0.024895351380109787,
+    "tensor_differentiable_score": -0.014720250852406025,
+    "api_same_input_absolute_error": 0.0,
+    "api_same_input_passed": true,
+    "api_atol": 1e-05,
+    "api_rtol": 1e-05,
+    "tensor_vs_pil_score_absolute_error": 0.010175100527703762,
+    "preprocess_max_abs_error": 0.14774060249328613,
+    "preprocess_rmse": 0.006225761026144028,
+    "note": "PIL quantifie en 8 bits ; le resize tensoriel reste continu. Cet écart de prétraitement est un diagnostic, pas une égalité numérique promise.",
+    "cost": {
+      "seconds": 0.5323491980000199,
+      "allocated_before_mib": 2105.40478515625,
+      "peak_allocated_mib": 2115.75341796875,
+      "additional_peak_mib": 10.3486328125,
+      "peak_reserved_mib": 2180.0
+    }
+  },
+  "cpu_test_log": "nt) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 0.417s\n\nOK\n",
+  "notebook_execution_counts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "notebook_historical_error": [
+    [
+      15,
+      "AssertionError",
+      "Gradient ImageReward non validé : lire les différences finies et les normes."
+    ]
+  ],
+  "scope": "One dev prompt, sandwich, seed 0, final latent only. No guidance sampling, quality improvement, early-timestep robustness or FULL memory claim.",
+  "audit_passed": true
+}

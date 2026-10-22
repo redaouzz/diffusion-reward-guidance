@@ -1,0 +1,11 @@
+{
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "torch": "2.8.0+cpu",
+  "diffusers": "0.35.1",
+  "transformers": "4.51.3",
+  "test_exit_code": 0,
+  "device": "CPU",
+  "pretrained_weights_loaded": false,
+  "network": "offline during tests",
+  "tokenizers": "0.21.4"
+}

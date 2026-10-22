@@ -1,0 +1,4 @@
+# Installation GPU : installer torch/torchvision CUDA 12.6 avant ce fichier.
+# Voir le Dockerfile pour les deux paquets officiels installés sans dépendances.
+-r requirements-rewards.txt
+matplotlib==3.10.6
